@@ -146,7 +146,6 @@
   .arch .col .icon{font-size:26px;margin-bottom:8px}
   .arch .col .name{font-size:14px;font-weight:600;margin-bottom:4px}
   .arch .col .desc{font-size:11px;color:var(--ink-3);line-height:1.5}
-  .arch .col.core{background:var(--accent-soft);border-color:var(--accent)}
 
   /* stat row */
   .stats{display:flex;gap:36px;margin-top:32px;flex-wrap:wrap}
@@ -238,7 +237,7 @@
       <div class="card"><h3>stock-research-lab</h3><p>研究生命周期。观察池、买入 thesis、卖出条件、复查日期、研究健康度。</p></div>
       <div class="card"><h3>trading-journal</h3><p>纸面账户与交易日志。唯一组合总表 + 五阶段流水线记录 + 复盘文档 + 策略反馈。</p></div>
       <div class="card"><h3>tools</h3><p>账本工具链。Excel 工作簿同步、历史回填、组合账本重建。</p></div>
-      <div class="card" style="background:var(--accent-soft);border-color:var(--accent)"><h3>闭环契约</h3><p>CSV/JSON 作为模块间唯一事实源，不共享数据库、不共享内存状态，任何一环可独立替换。</p></div>
+      <div class="card"><h3>闭环契约</h3><p>CSV/JSON 作为模块间唯一事实源，不共享数据库、不共享内存状态，任何一环可独立替换。</p></div>
     </div>
   </section>
 
@@ -257,7 +256,7 @@
         <div class="name">特征层</div>
         <div class="desc">pandas 因子工程：均线、RSI、KDJ、MACD、ATR、Z-score、回撤</div>
       </div>
-      <div class="col core">
+      <div class="col">
         <div class="icon">🤖</div>
         <div class="name">模型 / 规则层</div>
         <div class="desc">ML 集成概率 + 聚类 + 马尔可夫 + 贝叶斯，叠加四引擎规则</div>
