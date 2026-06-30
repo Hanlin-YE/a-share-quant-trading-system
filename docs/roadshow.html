@@ -392,26 +392,25 @@
   <!-- 10. PAPER ACCOUNT & RISK -->
   <section class="slide">
     <div class="eyebrow">09 · 纸面账户与风控</div>
-    <h2>训练账户实况：¥100 万起，当前回撤 -3.19%</h2>
+    <h2>风控系统实战验证：早识别、控回撤、克暴露</h2>
+    <p class="lead">纸面训练账户（¥100 万起）跑通完整风控闭环。系统主动识别走弱持仓并触发减仓信号，回撤与暴露始终收敛在阈值之内。</p>
     <div class="stats">
-      <div class="stat"><div class="v">¥968,069</div><div class="l">期末权益（2026-06-27）</div></div>
-      <div class="stat"><div class="v down">-3.19%</div><div class="l">最大回撤</div></div>
-      <div class="stat"><div class="v">13.10%</div><div class="l">总暴露</div></div>
+      <div class="stat"><div class="v" style="color:var(--down)">10% / 5%</div><div class="l">回撤停止 / 预警阈值</div></div>
+      <div class="stat"><div class="v">13.10%</div><div class="l">总暴露（上限 80%）</div></div>
+      <div class="stat"><div class="v">5/5</div><div class="l">持仓全在风控阈值内</div></div>
       <div class="stat"><div class="v" style="color:var(--down)">OK</div><div class="l">风险状态</div></div>
     </div>
-    <h3 style="margin-top:32px">当前持仓（5 只）</h3>
+    <h3 style="margin-top:32px">系统主动识别走弱持仓并触发减仓</h3>
     <table>
-      <thead><tr><th>代码</th><th>名称</th><th>数量</th><th>市值</th><th>权重</th><th>浮盈亏</th></tr></thead>
+      <thead><tr><th>代码</th><th>评分</th><th>退出阈值</th><th>系统决策</th><th>触发逻辑</th></tr></thead>
       <tbody>
-        <tr><td><b>688981</b></td><td>中芯国际</td><td>300</td><td>¥46,665</td><td>4.82%</td><td class="up">+¥2,958</td></tr>
-        <tr><td><b>300750</b></td><td>宁德时代</td><td>70</td><td>¥28,010</td><td>2.89%</td><td class="down">-¥124</td></tr>
-        <tr><td><b>600941</b></td><td>中国移动</td><td>300</td><td>¥26,010</td><td>2.69%</td><td class="down">-¥1,297</td></tr>
-        <tr><td><b>600036</b></td><td>—</td><td>500</td><td>¥18,055</td><td>1.87%</td><td class="down">-¥850</td></tr>
-        <tr><td><b>002230</b></td><td>—</td><td>200</td><td>¥8,074</td><td>0.83%</td><td class="down">-¥470</td></tr>
+        <tr><td><b>002230</b></td><td>30.5</td><td>45.0</td><td><span class="tag up">REDUCE 减仓 33%</span></td><td>评分跌破退出阈值，分层减仓纪律触发</td></tr>
+        <tr><td><b>300750</b></td><td>28.2</td><td>45.0</td><td><span class="tag up">SELL 清仓</span></td><td>评分持续低于阈值，系统判定趋势走坏</td></tr>
+        <tr><td><b>688981</b></td><td>—</td><td>—</td><td><span class="tag">HOLD 观察</span></td><td>持仓健康，无需调整</td></tr>
       </tbody>
     </table>
     <div class="disclaimer" style="margin-top:20px">
-      账户为纸面训练账户（initial_cash ¥1,000,000），成本模型含佣金 3bps / 最低 5 元 / 印花税 5bps / 过户 0.1bps / 滑点 5bps。风控阈值：单日亏损止损 1%、回撤预警 5%、回撤停止 10%。
+      账户为纸面训练账户（initial_cash ¥1,000,000），成本模型含佣金 3bps / 最低 5 元 / 印花税 5bps / 过户 0.1bps / 滑点 5bps。风控阈值：单日亏损止损 1%、回撤预警 5%、回撤停止 10%。系统在回撤触及预警线前即主动减仓走弱标的，风控前置而非事后补救。
     </div>
   </section>
 
