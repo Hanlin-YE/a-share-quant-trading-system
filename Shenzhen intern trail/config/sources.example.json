@@ -1,0 +1,43 @@
+{
+  "scan_interval_minutes": 30,
+  "news_sources": [
+    {
+      "key": "jin10",
+      "name": "金十数据",
+      "enabled": false,
+      "adapter": "pending_api_or_scraper"
+    },
+    {
+      "key": "wind",
+      "name": "Wind金融",
+      "enabled": false,
+      "adapter": "pending_licensed_terminal_or_api"
+    },
+    {
+      "key": "baidu_hot",
+      "name": "百度热搜",
+      "enabled": false,
+      "adapter": "pending_hot_search_scraper"
+    },
+    {
+      "key": "google_trends",
+      "name": "Google Trends Top 10",
+      "enabled": false,
+      "adapter": "pending_pytrends_or_export"
+    },
+    {
+      "key": "official_media",
+      "name": "官媒",
+      "enabled": false,
+      "adapter": "pending_rss_or_api"
+    }
+  ],
+  "thresholds": {
+    "news_hot_score": 1.0,
+    "main_force_net_min": 0.0,
+    "large_order_ratio_min": 0.12,
+    "volume_burst_multiple": 1.8,
+    "board_chase_min_pct": 7.0,
+    "board_chase_max_pct": 8.0
+  }
+}

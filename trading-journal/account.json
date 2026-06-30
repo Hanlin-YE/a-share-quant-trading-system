@@ -1,0 +1,19 @@
+{
+  "account_name": "A-share paper account",
+  "account_type": "paper",
+  "base_currency": "CNY",
+  "initial_cash": 1000000.0,
+  "fee_bps": 3.0,
+  "min_commission": 5.0,
+  "tax_bps": 5.0,
+  "transfer_bps": 0.1,
+  "slippage_bps": 5.0,
+  "risk_limits": {
+    "max_position_pct": 20.0,
+    "max_total_exposure_pct": 80.0,
+    "daily_loss_stop_pct": 1.0,
+    "max_drawdown_alert_pct": 5.0,
+    "max_drawdown_stop_pct": 10.0
+  },
+  "notes": "Training/research paper account only. Not investment advice and not real trading."
+}

@@ -1,0 +1,125 @@
+{
+  "ok": false,
+  "stage": "preopen",
+  "run_date": "2026-06-11",
+  "generated_at": "2026-06-11T13:16:16",
+  "mode": "paper",
+  "risk_note": "仅用于训练/研究和纸面交易，不构成投资建议、稳定盈利承诺或真实交易指令。",
+  "strategy_governance": {
+    "ok": false,
+    "generated_at": "2026-06-11T13:16:16",
+    "run_date": "2026-06-11",
+    "profile": "blocked_data",
+    "reason": "流水线记录或行情缓存不可用，禁止调参和晋级。",
+    "permissions": {
+      "allow_backtest": false,
+      "allow_parameter_search": false,
+      "allow_promotion": false,
+      "allow_new_entries": false
+    },
+    "optimization": {
+      "entry_scores": [
+        70.0
+      ],
+      "exit_scores": [
+        55.0
+      ],
+      "max_position_pcts": [
+        0.0
+      ],
+      "max_total_exposure_pcts": [
+        0.0
+      ],
+      "train_pct": 0.5,
+      "validation_pct": 0.25,
+      "min_trades": 999,
+      "max_drawdown_pct": 0.0,
+      "min_history": 80
+    },
+    "review": {
+      "failure_bucket": "data_cache_unhealthy",
+      "risk_state": "",
+      "order_count": 0,
+      "stage_status": {
+        "preopen": "failed",
+        "open": "missing",
+        "midday": "missing",
+        "afternoon": "missing",
+        "close": "missing"
+      }
+    },
+    "risk_note": "仅用于训练/研究和纸面交易治理，不构成投资建议、稳定盈利承诺或真实交易指令。",
+    "requested_run_date": "2026-06-11",
+    "source_run_date": "2026-06-11"
+  },
+  "cache_health": {
+    "ok": false,
+    "checked_at": "2026-06-11T13:16:16",
+    "days": 260,
+    "min_rows": 80,
+    "max_age_hours": 36,
+    "results": [
+      {
+        "stock_code": "600519",
+        "stock_name": "贵州茅台",
+        "usable": false,
+        "source_hint": "不可用：没有新鲜且足够的缓存",
+        "pushed_cache": {
+          "path": "/Users/hanlinye/Desktop/vibe 作品集/股票量化交易系统/stock-analyzer/.cache/pushed_market_data/600519.json",
+          "exists": false,
+          "ok": false,
+          "error": "推送缓存不存在"
+        },
+        "pull_caches": [
+          {
+            "provider": "tencent",
+            "path": "/Users/hanlinye/Desktop/vibe 作品集/股票量化交易系统/stock-analyzer/.cache/market_data/tencent_600519_260.json",
+            "exists": false,
+            "ok": false,
+            "cache_days": 260,
+            "error": "缓存不存在"
+          },
+          {
+            "provider": "eastmoney",
+            "path": "/Users/hanlinye/Desktop/vibe 作品集/股票量化交易系统/stock-analyzer/.cache/market_data/eastmoney_600519_260.json",
+            "exists": false,
+            "ok": false,
+            "cache_days": 260,
+            "error": "缓存不存在"
+          }
+        ]
+      },
+      {
+        "stock_code": "300750",
+        "stock_name": "宁德时代",
+        "usable": false,
+        "source_hint": "不可用：没有新鲜且足够的缓存",
+        "pushed_cache": {
+          "path": "/Users/hanlinye/Desktop/vibe 作品集/股票量化交易系统/stock-analyzer/.cache/pushed_market_data/300750.json",
+          "exists": false,
+          "ok": false,
+          "error": "推送缓存不存在"
+        },
+        "pull_caches": [
+          {
+            "provider": "tencent",
+            "path": "/Users/hanlinye/Desktop/vibe 作品集/股票量化交易系统/stock-analyzer/.cache/market_data/tencent_300750_260.json",
+            "exists": false,
+            "ok": false,
+            "cache_days": 260,
+            "error": "缓存不存在"
+          },
+          {
+            "provider": "eastmoney",
+            "path": "/Users/hanlinye/Desktop/vibe 作品集/股票量化交易系统/stock-analyzer/.cache/market_data/eastmoney_300750_260.json",
+            "exists": false,
+            "ok": false,
+            "cache_days": 260,
+            "error": "缓存不存在"
+          }
+        ]
+      }
+    ]
+  },
+  "next_action": "先刷新缓存或修复行情源，再运行策略优化和纸面执行。"
+}

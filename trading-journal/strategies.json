@@ -1,0 +1,75 @@
+{
+  "active_paper_strategy_id": "score-standard-v1",
+  "active_paper_strategy_note": "User approved reusing the backtest trading strategy for paper execution on 2026-06-25. This is paper-only training/research and does not authorize real trading.",
+  "state_machine": {
+    "states": [
+      "WATCH",
+      "CANDIDATE",
+      "TRADE_PLAN",
+      "EXECUTED"
+    ],
+    "min_trade_state": "TRADE_PLAN",
+    "allow_direct_trade_from_watch": false,
+    "note": "Observation names cannot become paper trades without a recorded trade plan."
+  },
+  "sentinel_basket": [
+    "000300",
+    "000905",
+    "510300",
+    "600519",
+    "300750",
+    "600036",
+    "688981",
+    "600941"
+  ],
+  "strategies": [
+    {
+      "id": "score-standard-v1",
+      "name": "评分标准策略 v1",
+      "description": "默认评分阈值，适合作为回测和纸面账户的基准策略。",
+      "entry_score": 58.0,
+      "exit_score": 45.0,
+      "max_position_pct": 20.0,
+      "max_total_exposure_pct": 80.0,
+      "partial_exit_pct": 0.33,
+      "min_actionable_history": 180,
+      "fee_bps": 3.0,
+      "min_commission": 5.0,
+      "tax_bps": 5.0,
+      "transfer_bps": 0.1,
+      "slippage_bps": 5.0
+    },
+    {
+      "id": "score-conservative-v1",
+      "name": "评分保守策略 v1",
+      "description": "提高入场阈值并降低总暴露，用于检验少交易、低回撤路径。",
+      "entry_score": 64.0,
+      "exit_score": 50.0,
+      "max_position_pct": 12.0,
+      "max_total_exposure_pct": 50.0,
+      "partial_exit_pct": 0.33,
+      "min_actionable_history": 180,
+      "fee_bps": 3.0,
+      "min_commission": 5.0,
+      "tax_bps": 5.0,
+      "transfer_bps": 0.1,
+      "slippage_bps": 5.0
+    },
+    {
+      "id": "score-active-v1",
+      "name": "评分积极策略 v1",
+      "description": "降低入场阈值并提高暴露，用于检验更高频的试错路径。",
+      "entry_score": 54.0,
+      "exit_score": 42.0,
+      "max_position_pct": 25.0,
+      "max_total_exposure_pct": 95.0,
+      "partial_exit_pct": 0.33,
+      "min_actionable_history": 180,
+      "fee_bps": 3.0,
+      "min_commission": 5.0,
+      "tax_bps": 5.0,
+      "transfer_bps": 0.1,
+      "slippage_bps": 5.0
+    }
+  ]
+}

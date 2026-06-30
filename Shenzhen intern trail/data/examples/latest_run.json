@@ -1,0 +1,382 @@
+{
+  "system": "Shenzhen intern trail",
+  "isolation_note": "independent prototype; no legacy ledger read/write",
+  "thresholds": {
+    "news_hot_score": 1.0,
+    "main_force_net_min": 0.0,
+    "large_order_ratio_min": 0.12,
+    "volume_burst_multiple": 1.8,
+    "board_chase_min_pct": 7.0,
+    "board_chase_max_pct": 8.0
+  },
+  "limit_up_theme_map": {
+    "机器人": [
+      "300124 汇川技术"
+    ],
+    "工业自动化": [
+      "300124 汇川技术"
+    ],
+    "AI算力": [
+      "300999 液冷龙头"
+    ],
+    "液冷": [
+      "300999 液冷龙头"
+    ],
+    "数据中心": [
+      "300999 液冷龙头"
+    ]
+  },
+  "hot_pool": [
+    {
+      "code": "300308",
+      "name": "中际旭创",
+      "hot_score": 2.5,
+      "matched_terms": [
+        "中际旭创",
+        "数据中心"
+      ],
+      "news_reasons": [
+        "official_media: 算力基础设施政策持续推进",
+        "baidu_hot: 液冷服务器进入热搜前十"
+      ]
+    },
+    {
+      "code": "300999",
+      "name": "液冷龙头",
+      "hot_score": 2.5,
+      "matched_terms": [
+        "AI算力",
+        "液冷"
+      ],
+      "news_reasons": [
+        "official_media: 算力基础设施政策持续推进",
+        "baidu_hot: 液冷服务器进入热搜前十"
+      ]
+    },
+    {
+      "code": "300456",
+      "name": "液冷龙二",
+      "hot_score": 2.5,
+      "matched_terms": [
+        "液冷"
+      ],
+      "news_reasons": [
+        "official_media: 算力基础设施政策持续推进",
+        "baidu_hot: 液冷服务器进入热搜前十"
+      ]
+    },
+    {
+      "code": "002000",
+      "name": "风险样例",
+      "hot_score": 1.5,
+      "matched_terms": [
+        "AI算力"
+      ],
+      "news_reasons": [
+        "official_media: 算力基础设施政策持续推进"
+      ]
+    },
+    {
+      "code": "300124",
+      "name": "汇川技术",
+      "hot_score": 1.0,
+      "matched_terms": [
+        "机器人"
+      ],
+      "news_reasons": [
+        "jin10: 机器人产业链盘中走强"
+      ]
+    },
+    {
+      "code": "300555",
+      "name": "机器人龙三",
+      "hot_score": 1.0,
+      "matched_terms": [
+        "机器人"
+      ],
+      "news_reasons": [
+        "jin10: 机器人产业链盘中走强"
+      ]
+    }
+  ],
+  "layer_results": [
+    {
+      "code": "300308",
+      "name": "中际旭创",
+      "hot_score": 2.5,
+      "matched_terms": [
+        "中际旭创",
+        "数据中心"
+      ],
+      "news_reasons": [
+        "official_media: 算力基础设施政策持续推进",
+        "baidu_hot: 液冷服务器进入热搜前十"
+      ],
+      "layer1": {
+        "passed": true,
+        "reason": "通过：新闻/热搜命中股名、代码或题材",
+        "metrics": {
+          "hot_score": 2.5,
+          "matched_terms": "中际旭创|数据中心"
+        }
+      },
+      "layer2": {
+        "passed": true,
+        "reason": "通过：主力净流入为正且换手有效",
+        "metrics": {
+          "main_force_net": 98000000.0,
+          "turnover": 5.8
+        }
+      },
+      "layer3": {
+        "passed": false,
+        "reason": "趋势否决：连续下跌 4 天；短期均线不呈多头排列 (MA5>MA10>MA20)；成交量均线多头但股价均线未跟随",
+        "metrics": {
+          "consecutive_down_days": 4,
+          "price_ma_bullish": false,
+          "volume_ma_bullish": true
+        }
+      },
+      "layer4": {
+        "passed": false,
+        "reason": "未进入第四层",
+        "metrics": {}
+      }
+    },
+    {
+      "code": "300999",
+      "name": "液冷龙头",
+      "hot_score": 2.5,
+      "matched_terms": [
+        "AI算力",
+        "液冷"
+      ],
+      "news_reasons": [
+        "official_media: 算力基础设施政策持续推进",
+        "baidu_hot: 液冷服务器进入热搜前十"
+      ],
+      "layer1": {
+        "passed": true,
+        "reason": "通过：新闻/热搜命中股名、代码或题材",
+        "metrics": {
+          "hot_score": 2.5,
+          "matched_terms": "AI算力|液冷"
+        }
+      },
+      "layer2": {
+        "passed": true,
+        "reason": "通过：主力净流入为正且换手有效",
+        "metrics": {
+          "main_force_net": 120000000.0,
+          "turnover": 9.2
+        }
+      },
+      "layer3": {
+        "passed": true,
+        "reason": "通过：成交量爆量 2.00x，量能4/11/117多头排列，股价均线多头排列 (MA5>MA10>MA20)，大单占比 22.0%",
+        "metrics": {
+          "burst_multiple": 2.0,
+          "volume_ma_bullish_4_11_117": true,
+          "price_ma_bullish": true,
+          "large_order_ratio": 0.22
+        }
+      },
+      "layer4": {
+        "passed": false,
+        "reason": "同板块未出现涨停个股，不跟随买入",
+        "metrics": {
+          "limit_up_peer_count": 0
+        }
+      }
+    },
+    {
+      "code": "300456",
+      "name": "液冷龙二",
+      "hot_score": 2.5,
+      "matched_terms": [
+        "液冷"
+      ],
+      "news_reasons": [
+        "official_media: 算力基础设施政策持续推进",
+        "baidu_hot: 液冷服务器进入热搜前十"
+      ],
+      "layer1": {
+        "passed": true,
+        "reason": "通过：新闻/热搜命中股名、代码或题材",
+        "metrics": {
+          "hot_score": 2.5,
+          "matched_terms": "液冷"
+        }
+      },
+      "layer2": {
+        "passed": true,
+        "reason": "通过：主力净流入为正且换手有效",
+        "metrics": {
+          "main_force_net": 75000000.0,
+          "turnover": 7.1
+        }
+      },
+      "layer3": {
+        "passed": true,
+        "reason": "通过：成交量爆量 1.87x，量能4/11/117多头排列，股价均线多头排列 (MA5>MA10>MA20)，大单占比 19.0%",
+        "metrics": {
+          "burst_multiple": 1.867,
+          "volume_ma_bullish_4_11_117": true,
+          "price_ma_bullish": true,
+          "large_order_ratio": 0.19
+        }
+      },
+      "layer4": {
+        "passed": true,
+        "reason": "同板块已有涨停个股，龙二跟随：打板儿7-8%挂单设置",
+        "metrics": {
+          "trigger": "BOARD_CHASE_7_8",
+          "limit_price": 28.22,
+          "limit_up_peers": "液冷: 300999 液冷龙头；数据中心: 300999 液冷龙头",
+          "leader_rank": 2,
+          "fallback_from": "",
+          "target_code": "300456",
+          "target_name": "液冷龙二",
+          "target_pct_change": 7.2
+        }
+      }
+    },
+    {
+      "code": "002000",
+      "name": "风险样例",
+      "hot_score": 1.5,
+      "matched_terms": [
+        "AI算力"
+      ],
+      "news_reasons": [
+        "official_media: 算力基础设施政策持续推进"
+      ],
+      "layer1": {
+        "passed": true,
+        "reason": "通过：新闻/热搜命中股名、代码或题材",
+        "metrics": {
+          "hot_score": 1.5,
+          "matched_terms": "AI算力"
+        }
+      },
+      "layer2": {
+        "passed": false,
+        "reason": "剔除风险标记: st",
+        "metrics": {
+          "risk_count": 1
+        }
+      },
+      "layer3": {
+        "passed": false,
+        "reason": "未进入第三层",
+        "metrics": {}
+      },
+      "layer4": {
+        "passed": false,
+        "reason": "未进入第四层",
+        "metrics": {}
+      }
+    },
+    {
+      "code": "300124",
+      "name": "汇川技术",
+      "hot_score": 1.0,
+      "matched_terms": [
+        "机器人"
+      ],
+      "news_reasons": [
+        "jin10: 机器人产业链盘中走强"
+      ],
+      "layer1": {
+        "passed": true,
+        "reason": "通过：新闻/热搜命中股名、代码或题材",
+        "metrics": {
+          "hot_score": 1.0,
+          "matched_terms": "机器人"
+        }
+      },
+      "layer2": {
+        "passed": true,
+        "reason": "通过：主力净流入为正且换手有效",
+        "metrics": {
+          "main_force_net": 42000000.0,
+          "turnover": 3.4
+        }
+      },
+      "layer3": {
+        "passed": true,
+        "reason": "通过：成交量爆量 1.86x，量能4/11/117多头排列，股价均线多头排列 (MA5>MA10>MA20)，大单占比 15.0%",
+        "metrics": {
+          "burst_multiple": 1.859,
+          "volume_ma_bullish_4_11_117": true,
+          "price_ma_bullish": true,
+          "large_order_ratio": 0.15
+        }
+      },
+      "layer4": {
+        "passed": false,
+        "reason": "同板块未出现涨停个股，不跟随买入",
+        "metrics": {
+          "limit_up_peer_count": 0
+        }
+      }
+    },
+    {
+      "code": "300555",
+      "name": "机器人龙三",
+      "hot_score": 1.0,
+      "matched_terms": [
+        "机器人"
+      ],
+      "news_reasons": [
+        "jin10: 机器人产业链盘中走强"
+      ],
+      "layer1": {
+        "passed": true,
+        "reason": "通过：新闻/热搜命中股名、代码或题材",
+        "metrics": {
+          "hot_score": 1.0,
+          "matched_terms": "机器人"
+        }
+      },
+      "layer2": {
+        "passed": true,
+        "reason": "通过：主力净流入为正且换手有效",
+        "metrics": {
+          "main_force_net": 38000000.0,
+          "turnover": 4.1
+        }
+      },
+      "layer3": {
+        "passed": true,
+        "reason": "通过：成交量爆量 1.81x，量能4/11/117多头排列，股价均线多头排列 (MA5>MA10>MA20)，大单占比 16.0%",
+        "metrics": {
+          "burst_multiple": 1.806,
+          "volume_ma_bullish_4_11_117": true,
+          "price_ma_bullish": true,
+          "large_order_ratio": 0.16
+        }
+      },
+      "layer4": {
+        "passed": false,
+        "reason": "买入目标不是龙二，等待龙二或龙三替代机会",
+        "metrics": {
+          "leader_rank": 3
+        }
+      }
+    }
+  ],
+  "buy_plans": [
+    {
+      "code": "300456",
+      "name": "液冷龙二",
+      "trigger": "BOARD_CHASE_7_8",
+      "limit_price": 28.22,
+      "pct_change_at_plan": 7.2,
+      "leader_rank": 2,
+      "fallback_from": "",
+      "reason": "同板块已有涨停个股，龙二跟随：打板儿7-8%挂单设置; 新闻热度 2.5; 通过：成交量爆量 1.87x，量能4/11/117多头排列，股价均线多头排列 (MA5>MA10>MA20)，大单占比 19.0%",
+      "risk_note": "研究计划，不自动下单；需复核涨跌停、T+1、盘口撤单和当日公告风险。"
+    }
+  ]
+}

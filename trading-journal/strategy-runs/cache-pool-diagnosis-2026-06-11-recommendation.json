@@ -1,0 +1,62 @@
+{
+  "status": "candidate_found",
+  "recommended_candidate": {
+    "strategy_id": "grid-trend-e54-x42-p10-t40",
+    "score_profile": "trend",
+    "entry_score": 54.0,
+    "exit_score": 42.0,
+    "max_position_pct": 10.0,
+    "max_total_exposure_pct": 40.0,
+    "selection_basis": "validation_objective",
+    "validation": {
+      "objective": 2.9981,
+      "total_return_pct": 0.8693,
+      "max_drawdown_pct": 0.2201,
+      "sharpe": 9.1756,
+      "trade_count": 16.0
+    },
+    "test": {
+      "objective": -10.0,
+      "total_return_pct": 0.0,
+      "max_drawdown_pct": 0.0,
+      "sharpe": 0.0,
+      "trade_count": 0.0
+    },
+    "walk_forward": {
+      "window_count": 3,
+      "ok_windows": 3,
+      "traded_windows": 2,
+      "positive_windows": 1,
+      "avg_return_pct": -0.8605,
+      "worst_drawdown_pct": 3.8139
+    }
+  },
+  "promotion_gate": {
+    "eligible_for_paper_trading": false,
+    "rules": [
+      "validation_objective > 0",
+      "test_total_return_pct > 0",
+      "test_max_drawdown_pct <= 20",
+      "test_trade_count >= 2",
+      "walk_forward_traded_windows >= 2",
+      "walk_forward_avg_return_pct > 0"
+    ],
+    "failed_rules": [
+      "test_total_return_pct > 0",
+      "test_max_drawdown_pct <= 20",
+      "test_trade_count >= 2",
+      "walk_forward_avg_return_pct > 0"
+    ],
+    "note": "通过晋级门槛也只允许进入纸面交易观察，不允许自动真实下单。"
+  },
+  "next_search": {
+    "profile": "trend",
+    "actions": [
+      "测试集无足够交易，优先扩大可回测股票池或延长测试窗口，不建议直接晋级。",
+      "测试集收益未转正，下一轮保留样本外门槛并比较更多策略族。",
+      "滚动样本外平均收益为负，下一轮降低过拟合风险，优先扩充股票池。"
+    ],
+    "recommended_next": "expand_cache_pool"
+  },
+  "risk_note": "仅用于训练/研究，不构成投资建议、稳定盈利承诺或自动交易信号。"
+}

@@ -1,0 +1,36 @@
+date,checkpoint,due_time,status,completed_at,evidence,notes
+2026-06-24,preopen_plan,08:50,overdue,,daily log / preopen pipeline record,盘前计划、观察池、无效条件。
+2026-06-24,open_snapshot,09:40,done,2026-06-24T13:28:09,data-check outputs: 600519/300750/002230/600036/600941/688981 realtime fallback,补登记：09:31-10:05 已顺序取数并记录行情链路
+2026-06-24,morning_review,10:30,done,2026-06-24T13:28:09,交易总表 2026-06-24 TRADE rows 10:06-10:10; automation memory a lines 11-16,补登记：按昨日频次完成5笔纸面训练交易并复核弱强
+2026-06-24,midday_plan,12:10,overdue,,midday pipeline record / daily log,上午结果和下午执行计划。
+2026-06-24,afternoon_review,14:00,pending,,afternoon pipeline record / intraday check row,午后加减仓或继续观察复核。
+2026-06-24,close_settlement,15:20,done,2026-06-24T13:28:09,交易总表 2026-06-24 DAY_SUMMARY; equity=969598.01,盘中结算已完成；若收盘后需再按收盘价重结算
+2026-06-24,post_close_audit,16:30,pending,,pipeline_review / ops report,审计缺失阶段、失败链路和次日动作。
+2026-06-26,preopen_plan,08:50,overdue,,daily log / preopen pipeline record,盘前计划、观察池、无效条件。
+2026-06-26,open_snapshot,09:40,done,2026-06-26T09:42:49,/Users/hanlinye/Desktop/vibe 作品集/股票量化交易系统/trading-journal/pipeline-runs/2026-06-26/open.json,pipeline open ok
+2026-06-26,morning_review,10:30,pending,,manual review / intraday check row,复核早盘触发、无效、止损纪律。
+2026-06-26,midday_plan,12:10,pending,,midday pipeline record / daily log,上午结果和下午执行计划。
+2026-06-26,afternoon_review,14:00,pending,,afternoon pipeline record / intraday check row,午后加减仓或继续观察复核。
+2026-06-26,close_settlement,15:20,pending,,DAY_SUMMARY / close pipeline record,结算权益、现金、持仓、盈亏和风险状态。
+2026-06-26,post_close_audit,16:30,pending,,pipeline_review / ops report,审计缺失阶段、失败链路和次日动作。
+2026-06-27,preopen_plan,08:50,overdue,,daily log / preopen pipeline record,盘前计划、观察池、无效条件。
+2026-06-27,open_snapshot,09:40,overdue,,open pipeline record / data-check output,开盘行情和数据链路检查。
+2026-06-27,morning_review,10:30,overdue,,manual review / intraday check row,复核早盘触发、无效、止损纪律。
+2026-06-27,midday_plan,12:10,pending,,midday pipeline record / daily log,上午结果和下午执行计划。
+2026-06-27,afternoon_review,14:00,pending,,afternoon pipeline record / intraday check row,午后加减仓或继续观察复核。
+2026-06-27,close_settlement,15:20,done,2026-06-27T10:50:29,/Users/hanlinye/Desktop/vibe 作品集/股票量化交易系统/trading-journal/pipeline-runs/2026-06-27/close.json,pipeline close ok
+2026-06-27,post_close_audit,16:30,pending,,pipeline_review / ops report,审计缺失阶段、失败链路和次日动作。
+2026-06-29,preopen_plan,08:50,overdue,,daily log / preopen pipeline record,盘前计划、观察池、无效条件。
+2026-06-29,open_snapshot,09:40,failed,2026-06-29T10:32:52,/Users/hanlinye/Desktop/vibe 作品集/股票量化交易系统/trading-journal/pipeline-runs/2026-06-29/open.json,pipeline open failed
+2026-06-29,morning_review,10:30,overdue,,manual review / intraday check row,复核早盘触发、无效、止损纪律。
+2026-06-29,midday_plan,12:10,pending,,midday pipeline record / daily log,上午结果和下午执行计划。
+2026-06-29,afternoon_review,14:00,pending,,afternoon pipeline record / intraday check row,午后加减仓或继续观察复核。
+2026-06-29,close_settlement,15:20,pending,,DAY_SUMMARY / close pipeline record,结算权益、现金、持仓、盈亏和风险状态。
+2026-06-29,post_close_audit,16:30,pending,,pipeline_review / ops report,审计缺失阶段、失败链路和次日动作。
+2026-06-30,preopen_plan,08:50,overdue,,daily log / preopen pipeline record,盘前计划、观察池、无效条件。
+2026-06-30,open_snapshot,09:40,done,2026-06-30T09:59:39,/Users/hanlinye/Desktop/vibe 作品集/股票量化交易系统/trading-journal/pipeline-runs/2026-06-30/open.json,pipeline open ok
+2026-06-30,morning_review,10:30,overdue,,manual review / intraday check row,复核早盘触发、无效、止损纪律。
+2026-06-30,midday_plan,12:10,pending,,midday pipeline record / daily log,上午结果和下午执行计划。
+2026-06-30,afternoon_review,14:00,pending,,afternoon pipeline record / intraday check row,午后加减仓或继续观察复核。
+2026-06-30,close_settlement,15:20,pending,,DAY_SUMMARY / close pipeline record,结算权益、现金、持仓、盈亏和风险状态。
+2026-06-30,post_close_audit,16:30,pending,,pipeline_review / ops report,审计缺失阶段、失败链路和次日动作。

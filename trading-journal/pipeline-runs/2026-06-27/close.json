@@ -1,0 +1,481 @@
+{
+  "ok": true,
+  "stage": "close",
+  "run_date": "2026-06-27",
+  "generated_at": "2026-06-27T10:50:08",
+  "mode": "paper",
+  "monitoring_note": "日常阶段用于纸面账户结算、风险暴露和流程漂移检查；研究回测仅在策略/参数/股票池规则变更或周/月度复盘时运行。",
+  "risk_note": "仅用于训练/研究和纸面交易，不构成投资建议、稳定盈利承诺或真实交易指令。",
+  "close_decisions": {
+    "ok": true,
+    "generated_at": "2026-06-27T10:50:22",
+    "mode": "paper",
+    "strategy": {
+      "id": "score-standard-v1",
+      "name": "评分标准策略 v1",
+      "entry_score": 58.0,
+      "exit_score": 45.0,
+      "max_position_pct": 20.0,
+      "max_total_exposure_pct": 80.0,
+      "min_trade_state": "TRADE_PLAN",
+      "min_actionable_history": 180
+    },
+    "account": {
+      "equity": 971318.91,
+      "cash": 747105.91,
+      "stock_value": 224213.0,
+      "exposure_pct": 23.0834
+    },
+    "decisions": [
+      {
+        "symbol": "002230",
+        "name": "未知",
+        "action": "REDUCE",
+        "side": "SELL",
+        "quantity": 100,
+        "price": 40.37,
+        "reason": "评分 38.5 低于退出阈值 45.0，按分层减仓 33% 处理",
+        "current_quantity": 300,
+        "current_value": 12111.0,
+        "target_weight_pct": 20.0,
+        "strategy_id": "score-standard-v1",
+        "state": "WATCH",
+        "min_trade_state": "TRADE_PLAN",
+        "history_len": 261,
+        "preflight": {
+          "actionable": true,
+          "blocking_reasons": [],
+          "sellable_quantity": 200,
+          "cash_required": null
+        },
+        "score": {
+          "stock_code": "002230",
+          "stock_name": "未知",
+          "source": "腾讯财经 前复权日线（curl兜底）",
+          "source_note": "使用本地缓存兜底，缓存时间=2026-06-26T09:42:46；A 股优先使用腾讯/东方财富多源日线；Stooq 保留为可选实验源",
+          "latest_date": "2026-06-26",
+          "close": 40.37,
+          "final_score": 38.477445310038135,
+          "ta_score": 47.0,
+          "risk_score": 12.909781240152554,
+          "max_drawdown_pct": 36.62,
+          "suggestion": "高风险观察 / 不开新仓",
+          "signals": [
+            "均线结构: MA5>MA10, MA10<MA20, MA20<MA60",
+            "RSI(14)=34.53，处于中性区",
+            "KDJ-J=15.16，偏超卖",
+            "MACD 柱=-0.1106，动能偏弱",
+            "量比=0.16，交投收缩"
+          ]
+        }
+      },
+      {
+        "symbol": "300750",
+        "name": "宁德时代",
+        "action": "HOLD",
+        "side": "",
+        "quantity": 0,
+        "price": 400.15,
+        "reason": "已有持仓且未跌破退出阈值，继续持有",
+        "current_quantity": 70,
+        "current_value": 28010.5,
+        "target_weight_pct": 20.0,
+        "strategy_id": "score-standard-v1",
+        "state": "WATCH",
+        "min_trade_state": "TRADE_PLAN",
+        "history_len": 261,
+        "preflight": {
+          "actionable": false,
+          "blocking_reasons": [
+            "无可执行买卖数量"
+          ],
+          "sellable_quantity": null,
+          "cash_required": null
+        },
+        "score": {
+          "stock_code": "300750",
+          "stock_name": "宁德时代",
+          "source": "腾讯财经 前复权日线（curl兜底）",
+          "source_note": "使用本地缓存兜底，缓存时间=2026-06-26T09:42:46；A 股优先使用腾讯/东方财富多源日线；Stooq 保留为可选实验源",
+          "latest_date": "2026-06-26",
+          "close": 400.15,
+          "final_score": 45.81624678172625,
+          "ta_score": 49.0,
+          "risk_score": 36.26498712690501,
+          "max_drawdown_pct": 16.91,
+          "suggestion": "观望",
+          "signals": [
+            "均线结构: MA5>MA10, MA10<MA20, MA20<MA60",
+            "RSI(14)=47.68，处于中性区",
+            "KDJ-J=57.08",
+            "MACD 柱=1.5431，多头动能占优",
+            "量比=0.16，交投收缩"
+          ]
+        }
+      },
+      {
+        "symbol": "600036",
+        "name": "未知",
+        "action": "REDUCE",
+        "side": "SELL",
+        "quantity": 200,
+        "price": 36.11,
+        "reason": "评分 42.9 低于退出阈值 45.0，按分层减仓 33% 处理",
+        "current_quantity": 700,
+        "current_value": 25277.0,
+        "target_weight_pct": 20.0,
+        "strategy_id": "score-standard-v1",
+        "state": "WATCH",
+        "min_trade_state": "TRADE_PLAN",
+        "history_len": 261,
+        "preflight": {
+          "actionable": true,
+          "blocking_reasons": [],
+          "sellable_quantity": 500,
+          "cash_required": null
+        },
+        "score": {
+          "stock_code": "600036",
+          "stock_name": "未知",
+          "source": "腾讯财经 前复权日线（curl兜底）",
+          "source_note": "使用本地缓存兜底，缓存时间=2026-06-26T09:42:47；A 股优先使用腾讯/东方财富多源日线；Stooq 保留为可选实验源",
+          "latest_date": "2026-06-26",
+          "close": 36.11,
+          "final_score": 42.90200055914825,
+          "ta_score": 37.0,
+          "risk_score": 60.60800223659298,
+          "max_drawdown_pct": 13.44,
+          "suggestion": "减仓或回避",
+          "signals": [
+            "均线结构: MA5<MA10, MA10<MA20, MA20<MA60",
+            "RSI(14)=31.26，处于中性区",
+            "KDJ-J=-15.14，偏超卖",
+            "MACD 柱=-0.5183，动能偏弱",
+            "量比=0.12，交投收缩"
+          ]
+        }
+      },
+      {
+        "symbol": "600941",
+        "name": "未知",
+        "action": "HOLD",
+        "side": "",
+        "quantity": 0,
+        "price": 86.7,
+        "reason": "已有持仓且未跌破退出阈值，继续持有",
+        "current_quantity": 300,
+        "current_value": 26010.0,
+        "target_weight_pct": 20.0,
+        "strategy_id": "score-standard-v1",
+        "state": "WATCH",
+        "min_trade_state": "TRADE_PLAN",
+        "history_len": 261,
+        "preflight": {
+          "actionable": false,
+          "blocking_reasons": [
+            "无可执行买卖数量"
+          ],
+          "sellable_quantity": null,
+          "cash_required": null
+        },
+        "score": {
+          "stock_code": "600941",
+          "stock_name": "未知",
+          "source": "腾讯财经 前复权日线（curl兜底）",
+          "source_note": "使用本地缓存兜底，缓存时间=2026-06-26T09:42:48；A 股优先使用腾讯/东方财富多源日线；Stooq 保留为可选实验源",
+          "latest_date": "2026-06-26",
+          "close": 86.7,
+          "final_score": 60.22879516138601,
+          "ta_score": 59.0,
+          "risk_score": 63.915180645544034,
+          "max_drawdown_pct": 12.71,
+          "suggestion": "偏积极观察 / 等待确认",
+          "signals": [
+            "均线结构: MA5<MA10, MA10<MA20, MA20>MA60",
+            "RSI(14)=22.57，短线超卖",
+            "KDJ-J=-4.33，偏超卖",
+            "MACD 柱=-2.0011，动能偏弱",
+            "量比=0.17，交投收缩"
+          ]
+        }
+      },
+      {
+        "symbol": "688981",
+        "name": "未知",
+        "action": "HOLD",
+        "side": "",
+        "quantity": 0,
+        "price": 155.55,
+        "reason": "已有持仓且未跌破退出阈值，继续持有",
+        "current_quantity": 300,
+        "current_value": 46665.0,
+        "target_weight_pct": 20.0,
+        "strategy_id": "score-standard-v1",
+        "state": "WATCH",
+        "min_trade_state": "TRADE_PLAN",
+        "history_len": 261,
+        "preflight": {
+          "actionable": false,
+          "blocking_reasons": [
+            "无可执行买卖数量"
+          ],
+          "sellable_quantity": null,
+          "cash_required": null
+        },
+        "score": {
+          "stock_code": "688981",
+          "stock_name": "未知",
+          "source": "腾讯财经 日线（curl兜底）",
+          "source_note": "腾讯未返回前复权字段，已退回普通日线；复权一致性需二次确认；使用本地缓存兜底，缓存时间=2026-06-26T09:42:49；A 股优先使用腾讯/东方财富多源日线；Stooq 保留为可选实验源",
+          "latest_date": "2026-06-26",
+          "close": 155.55,
+          "final_score": 46.1135,
+          "ta_score": 59.0,
+          "risk_score": 7.454000000000008,
+          "max_drawdown_pct": 30.39,
+          "suggestion": "高风险观察 / 不开新仓",
+          "signals": [
+            "均线结构: MA5>MA10, MA10>MA20, MA20>MA60",
+            "RSI(14)=66.36，处于中性区",
+            "KDJ-J=102.39，偏超买",
+            "MACD 柱=4.4829，多头动能占优",
+            "量比=0.11，交投收缩"
+          ]
+        }
+      }
+    ],
+    "failures": [],
+    "risk_note": "仅用于训练/研究和纸面交易，不构成投资建议或真实交易指令。"
+  },
+  "settlement": {
+    "date": "2026-06-27",
+    "section": "2026-06-27 组合汇总",
+    "row_type": "DAY_SUMMARY",
+    "start_equity": 971318.91,
+    "end_equity": 968068.62,
+    "daily_pnl": -3250.29,
+    "daily_return_pct": -0.3346,
+    "cash": 841254.12,
+    "stock_value": 126814.5,
+    "total_exposure_pct": 13.0997,
+    "max_drawdown_pct": -3.1931,
+    "risk_state": "OK",
+    "notes": "daily_pipeline 纸面收盘结算；非真实交易"
+  },
+  "ops_report": "/Users/hanlinye/Desktop/vibe 作品集/股票量化交易系统/trading-journal/reviews/2026-06-27-ops-report.md",
+  "pipeline_review": {
+    "ok": false,
+    "reviewed_at": "2026-06-27T10:50:22",
+    "run_date": "2026-06-27",
+    "failure_bucket": "missing_pipeline_records",
+    "stage_status": {
+      "preopen": "missing",
+      "open": "missing",
+      "midday": "missing",
+      "afternoon": "missing",
+      "close": "missing"
+    },
+    "present_stages": [],
+    "missing_stages": [
+      "preopen",
+      "open",
+      "midday",
+      "afternoon",
+      "close"
+    ],
+    "order_count": 0,
+    "equity": {
+      "date": "2026-06-27",
+      "section": "2026-06-27 组合汇总",
+      "row_type": "DAY_SUMMARY",
+      "time": "",
+      "symbol": "",
+      "name": "",
+      "side": "",
+      "action": "",
+      "quantity": "",
+      "price": "",
+      "avg_cost": "",
+      "gross_amount": "",
+      "commission": "",
+      "stamp_tax": "",
+      "transfer_fee": "",
+      "total_cost": "",
+      "net_amount": "",
+      "cash": "841254.12",
+      "stock_value": "126814.5",
+      "market_value": "",
+      "start_equity": "971318.91",
+      "end_equity": "968068.62",
+      "daily_pnl": "-3250.29",
+      "daily_return_pct": "-0.3346",
+      "realized_pnl": "",
+      "unrealized_pnl": "",
+      "unrealized_pnl_pct": "",
+      "total_exposure_pct": "13.0997",
+      "weight_pct": "",
+      "max_drawdown_pct": "-3.1931",
+      "risk_state": "OK",
+      "strategy_tag": "",
+      "strategy_id": "",
+      "score_profile": "",
+      "factor_weights": "",
+      "strategy_status": "",
+      "reason": "",
+      "thesis": "",
+      "review_date": "",
+      "status": "",
+      "notes": "daily_pipeline 纸面收盘结算；非真实交易"
+    },
+    "next_action": "补齐五阶段 --record 自动化；没有记录就无法训练反馈模型。",
+    "risk_note": "仅用于训练/研究和纸面交易反馈，不构成投资建议、稳定盈利承诺或真实交易指令。"
+  },
+  "workbook_sync": {
+    "ok": true,
+    "workbook": "/Users/hanlinye/Desktop/vibe 作品集/股票量化交易系统/trading-journal/量化交易AI实盘_纸面交易记录.xlsx"
+  },
+  "record_path": "/Users/hanlinye/Desktop/vibe 作品集/股票量化交易系统/trading-journal/pipeline-runs/2026-06-27/close.json",
+  "checkpoint_import": [
+    {
+      "date": "2026-06-27",
+      "checkpoint": "close_settlement",
+      "due_time": "15:20",
+      "status": "done",
+      "completed_at": "2026-06-27T10:50:22",
+      "evidence": "/Users/hanlinye/Desktop/vibe 作品集/股票量化交易系统/trading-journal/pipeline-runs/2026-06-27/close.json",
+      "notes": "pipeline close ok"
+    }
+  ],
+  "checkpoint_audit": {
+    "date": "2026-06-27",
+    "audited_at": "2026-06-27T10:50:22",
+    "counts": {
+      "done": 1,
+      "pending": 3,
+      "overdue": 3,
+      "failed": 0,
+      "waived": 0
+    },
+    "missing": [
+      {
+        "date": "2026-06-27",
+        "checkpoint": "preopen_plan",
+        "due_time": "08:50",
+        "status": "overdue",
+        "completed_at": "",
+        "evidence": "daily log / preopen pipeline record",
+        "notes": "盘前计划、观察池、无效条件。"
+      },
+      {
+        "date": "2026-06-27",
+        "checkpoint": "open_snapshot",
+        "due_time": "09:40",
+        "status": "overdue",
+        "completed_at": "",
+        "evidence": "open pipeline record / data-check output",
+        "notes": "开盘行情和数据链路检查。"
+      },
+      {
+        "date": "2026-06-27",
+        "checkpoint": "morning_review",
+        "due_time": "10:30",
+        "status": "overdue",
+        "completed_at": "",
+        "evidence": "manual review / intraday check row",
+        "notes": "复核早盘触发、无效、止损纪律。"
+      },
+      {
+        "date": "2026-06-27",
+        "checkpoint": "midday_plan",
+        "due_time": "12:10",
+        "status": "pending",
+        "completed_at": "",
+        "evidence": "midday pipeline record / daily log",
+        "notes": "上午结果和下午执行计划。"
+      },
+      {
+        "date": "2026-06-27",
+        "checkpoint": "afternoon_review",
+        "due_time": "14:00",
+        "status": "pending",
+        "completed_at": "",
+        "evidence": "afternoon pipeline record / intraday check row",
+        "notes": "午后加减仓或继续观察复核。"
+      },
+      {
+        "date": "2026-06-27",
+        "checkpoint": "post_close_audit",
+        "due_time": "16:30",
+        "status": "pending",
+        "completed_at": "",
+        "evidence": "pipeline_review / ops report",
+        "notes": "审计缺失阶段、失败链路和次日动作。"
+      }
+    ],
+    "rows": [
+      {
+        "date": "2026-06-27",
+        "checkpoint": "preopen_plan",
+        "due_time": "08:50",
+        "status": "overdue",
+        "completed_at": "",
+        "evidence": "daily log / preopen pipeline record",
+        "notes": "盘前计划、观察池、无效条件。"
+      },
+      {
+        "date": "2026-06-27",
+        "checkpoint": "open_snapshot",
+        "due_time": "09:40",
+        "status": "overdue",
+        "completed_at": "",
+        "evidence": "open pipeline record / data-check output",
+        "notes": "开盘行情和数据链路检查。"
+      },
+      {
+        "date": "2026-06-27",
+        "checkpoint": "morning_review",
+        "due_time": "10:30",
+        "status": "overdue",
+        "completed_at": "",
+        "evidence": "manual review / intraday check row",
+        "notes": "复核早盘触发、无效、止损纪律。"
+      },
+      {
+        "date": "2026-06-27",
+        "checkpoint": "midday_plan",
+        "due_time": "12:10",
+        "status": "pending",
+        "completed_at": "",
+        "evidence": "midday pipeline record / daily log",
+        "notes": "上午结果和下午执行计划。"
+      },
+      {
+        "date": "2026-06-27",
+        "checkpoint": "afternoon_review",
+        "due_time": "14:00",
+        "status": "pending",
+        "completed_at": "",
+        "evidence": "afternoon pipeline record / intraday check row",
+        "notes": "午后加减仓或继续观察复核。"
+      },
+      {
+        "date": "2026-06-27",
+        "checkpoint": "close_settlement",
+        "due_time": "15:20",
+        "status": "done",
+        "completed_at": "2026-06-27T10:50:22",
+        "evidence": "/Users/hanlinye/Desktop/vibe 作品集/股票量化交易系统/trading-journal/pipeline-runs/2026-06-27/close.json",
+        "notes": "pipeline close ok"
+      },
+      {
+        "date": "2026-06-27",
+        "checkpoint": "post_close_audit",
+        "due_time": "16:30",
+        "status": "pending",
+        "completed_at": "",
+        "evidence": "pipeline_review / ops report",
+        "notes": "审计缺失阶段、失败链路和次日动作。"
+      }
+    ]
+  }
+}

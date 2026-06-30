@@ -1,0 +1,631 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>A股量化投研咨询工作台</title>
+    <link rel="stylesheet" href="styles.css?v=5" />
+  </head>
+  <body class="pre-analysis">
+    <div class="scroll-progress" aria-hidden="true">
+      <span id="scroll-progress-bar"></span>
+    </div>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">QC</div>
+          <div>
+            <strong>Quant Counsel</strong>
+            <span>Independent A-share Research</span>
+          </div>
+        </div>
+
+        <nav class="nav" aria-label="主导航">
+          <a class="active" href="#consult">研究工作台</a>
+          <a href="#data-ops">数据链路</a>
+          <a href="#brief">投资简报</a>
+          <a href="#evidence">模型证据链</a>
+          <a href="#risk">风控门禁</a>
+          <a href="#report">报告原文</a>
+        </nav>
+
+        <div class="analysis-gate">
+          <span class="meta-label">Workflow</span>
+          <strong>先完成问诊，再展开研究目录</strong>
+          <p>输入股票代码，并确认交易节奏、风险偏好、回撤容忍和仓位上限后，系统才生成完整评估结构。</p>
+        </div>
+
+        <div class="method-card">
+          <span class="meta-label">Method Stack</span>
+          <strong>技术面 + 机器学习 + 市场状态 + 风控约束</strong>
+          <p>结论先经过数据链路、样本窗口、模型可用性和回撤约束，再进入咨询建议。</p>
+        </div>
+
+        <div class="compliance-note">
+          <span class="meta-label">Service Boundary</span>
+          <p>仅用于量化研究、商业咨询展示和辅助决策，不构成投资建议或自动交易指令。</p>
+        </div>
+      </aside>
+
+      <main class="workspace">
+        <section class="terminal-band scroll-section" id="consult" aria-labelledby="page-title">
+          <div class="headline">
+            <span class="eyebrow">Institutional Research Desk</span>
+            <h1 id="page-title">A股量化投研咨询工作台</h1>
+            <p>
+              输入股票代码后，系统会读取公开行情、运行量价特征与模型验证，并输出可解释的研究结论、操作边界和风险门禁。
+            </p>
+            <div class="desk-metrics" aria-label="服务能力概览">
+              <div>
+                <span>Coverage</span>
+                <strong>A 股全市场</strong>
+              </div>
+              <div>
+                <span>Model Layer</span>
+                <strong>7 类模型验证</strong>
+              </div>
+              <div>
+                <span>Data Ops</span>
+                <strong>推送 + 回退</strong>
+              </div>
+            </div>
+            <button class="scroll-cue" type="button" id="jump-brief">查看研究简报 ↓</button>
+          </div>
+
+          <form class="query-form" id="query-form">
+            <div class="form-title">
+              <span>单票研究入口</span>
+              <strong>生成咨询简报</strong>
+            </div>
+            <div class="stock-field">
+              <label for="stock-input">股票代码</label>
+              <div class="input-row">
+                <input
+                  id="stock-input"
+                  name="stock"
+                  inputmode="numeric"
+                  maxlength="6"
+                  placeholder="600519"
+                  value="600519"
+                  autocomplete="off"
+                />
+                <button type="submit" id="analyze-button">生成报告</button>
+              </div>
+            </div>
+            <div class="form-options" aria-label="分析参数">
+              <label>
+                样本窗口
+                <select id="days-input" name="days">
+                  <option value="240">240 日</option>
+                  <option value="360" selected>360 日</option>
+                  <option value="720">720 日</option>
+                </select>
+              </label>
+              <label>
+                预测周期
+                <select id="horizon-input" name="horizon">
+                  <option value="3">3 日</option>
+                  <option value="5" selected>5 日</option>
+                  <option value="10">10 日</option>
+                </select>
+              </label>
+              <label>
+                行情源
+                <select id="source-input" name="source">
+                  <option value="premium" selected>专业优先</option>
+                  <option value="push">供应商推送</option>
+                  <option value="pull">自动拉取</option>
+                  <option value="auto">自动择源</option>
+                  <option value="tushare">Tushare Pro</option>
+                  <option value="tencent">腾讯财经</option>
+                  <option value="eastmoney">东方财富</option>
+                </select>
+              </label>
+            </div>
+            <div class="source-panel" aria-label="数据源状态">
+              <div>
+                <span>数据策略</span>
+                <strong id="source-policy">专业源优先 / 多源回退</strong>
+              </div>
+              <div>
+                <span>推送接入</span>
+                <strong id="source-premium-state">检测中</strong>
+              </div>
+              <div>
+                <span>更新频率</span>
+                <strong id="source-refresh">交易日日频</strong>
+              </div>
+            </div>
+            <p class="source-footnote" id="source-detail">
+              默认链路：供应商推送缓存优先；未命中时调用 Tushare Pro；再以腾讯财经 / 东方财富作为兜底校验。
+            </p>
+            <div class="preference-panel" aria-label="交易偏好设置">
+              <div class="preference-head">
+                <span>交易偏好</span>
+                <strong id="preference-summary">稳健 / 波段 / 回撤 12% / 仓位 10%</strong>
+              </div>
+              <div class="preference-grid">
+                <label>
+                  风险类型
+                  <select id="risk-preference" name="riskPreference">
+                    <option value="conservative" selected>稳健型</option>
+                    <option value="balanced">平衡型</option>
+                    <option value="aggressive">积极型</option>
+                  </select>
+                </label>
+                <label>
+                  交易节奏
+                  <select id="style-preference" name="stylePreference">
+                    <option value="short">短线</option>
+                    <option value="swing" selected>波段</option>
+                    <option value="position">中线</option>
+                  </select>
+                </label>
+                <label>
+                  最大回撤容忍
+                  <input id="drawdown-preference" name="drawdownPreference" type="range" min="5" max="35" value="12" step="1" />
+                </label>
+                <label>
+                  单票仓位上限
+                  <input id="position-preference" name="positionPreference" type="range" min="3" max="30" value="10" step="1" />
+                </label>
+              </div>
+            </div>
+            <p class="form-status" id="form-status">
+              完成输入后生成总报告，目录和结论模块会在分析完成后自动展开。
+            </p>
+          </form>
+        </section>
+
+        <section class="data-ops-panel scroll-section post-analysis-section" id="data-ops" aria-labelledby="data-ops-title">
+          <div class="panel-head compact-head">
+            <div>
+              <span class="section-kicker">Data Operations</span>
+              <h2 id="data-ops-title">高质量数据更新链路</h2>
+            </div>
+            <span class="pill" id="data-ops-state">链路检测中</span>
+          </div>
+          <div class="pipeline-grid" aria-label="数据更新链路">
+            <div class="pipeline-step primary">
+              <span class="step-index">01</span>
+              <strong>供应商推送缓存</strong>
+              <p>数据供应商向 Webhook 主动推送日线或复权行情，系统收到后立即进入本地可审计缓存。</p>
+              <small id="pipeline-push">等待配置 DATA_WEBHOOK_SECRET</small>
+            </div>
+            <div class="pipeline-step">
+              <span class="step-index">02</span>
+              <strong>Tushare Pro 拉取</strong>
+              <p>推送数据缺失时，使用授权 API 自动拉取结构化行情，适合作为正式咨询数据层。</p>
+              <small id="pipeline-tushare">等待检测 TUSHARE_TOKEN</small>
+            </div>
+            <div class="pipeline-step">
+              <span class="step-index">03</span>
+              <strong>公开源兜底校验</strong>
+              <p>腾讯财经与东方财富作为降级链路，保证演示与咨询入口在主数据源异常时仍可工作。</p>
+              <small id="pipeline-fallback">腾讯 / 东方财富可用</small>
+            </div>
+          </div>
+          <div class="ops-ledger" aria-label="运维透明度">
+            <div>
+              <span>刷新方式</span>
+              <strong id="ops-refresh">Webhook 推送 / 定时刷新</strong>
+            </div>
+            <div>
+              <span>审计留痕</span>
+              <strong>数据源、样本窗口、报告原文全部展示</strong>
+            </div>
+            <div>
+              <span>生产状态</span>
+              <strong id="ops-production">可接入供应商 API 与云端 Cron</strong>
+            </div>
+          </div>
+        </section>
+
+        <section class="intel-panel scroll-section post-analysis-section" aria-label="投研信息矩阵">
+          <div class="panel-head compact-head">
+            <div>
+              <span class="section-kicker">Market Intelligence Matrix</span>
+              <h2>投研信息矩阵</h2>
+            </div>
+            <span class="pill" id="matrix-state">等待分析</span>
+          </div>
+          <div class="intel-grid">
+            <div class="intel-item">
+              <span>证券</span>
+              <strong id="matrix-security">-</strong>
+              <small id="matrix-source">数据源待连接</small>
+            </div>
+            <div class="intel-item">
+              <span>样本</span>
+              <strong id="matrix-sample">-</strong>
+              <small id="matrix-days">交易日 N/A</small>
+            </div>
+            <div class="intel-item">
+              <span>价格</span>
+              <strong id="matrix-price">-</strong>
+              <small id="matrix-change">日变动 N/A</small>
+            </div>
+            <div class="intel-item">
+              <span>综合</span>
+              <strong id="matrix-final">-</strong>
+              <small id="matrix-advice">建议待生成</small>
+            </div>
+            <div class="intel-item">
+              <span>技术</span>
+              <strong id="matrix-technical">-</strong>
+              <small id="matrix-trend">均线结构 N/A</small>
+            </div>
+            <div class="intel-item">
+              <span>模型</span>
+              <strong id="matrix-model">-</strong>
+              <small id="matrix-model-note">Edge N/A</small>
+            </div>
+            <div class="intel-item">
+              <span>风控</span>
+              <strong id="matrix-risk">-</strong>
+              <small id="matrix-risk-note">回撤 / ATR N/A</small>
+            </div>
+            <div class="intel-item">
+              <span>门禁</span>
+              <strong id="matrix-gate">-</strong>
+              <small id="matrix-gate-note">仓位边界待生成</small>
+            </div>
+          </div>
+          <div class="intel-tape" aria-label="核心状态条">
+            <span id="matrix-rsi">RSI N/A</span>
+            <span id="matrix-kdj">KDJ N/A</span>
+            <span id="matrix-macd">MACD N/A</span>
+            <span id="matrix-vol">20D Vol N/A</span>
+            <span id="matrix-atr">ATR N/A</span>
+            <span id="matrix-dd">MaxDD N/A</span>
+          </div>
+        </section>
+
+        <section class="status-strip scroll-section post-analysis-section" id="status-strip" aria-live="polite">
+          <div>
+            <span class="meta-label">Security</span>
+            <strong id="status-stock">等待输入</strong>
+          </div>
+          <div>
+            <span class="meta-label">Recommendation</span>
+            <strong id="status-state">就绪</strong>
+          </div>
+          <div>
+            <span class="meta-label">Sample Range</span>
+            <strong id="status-range">-</strong>
+          </div>
+        </section>
+
+        <section class="personalization-panel scroll-section post-analysis-section" aria-label="个性化操作边界">
+          <div class="panel-head compact-head">
+            <div>
+              <span class="section-kicker">Personalized Execution Policy</span>
+              <h2>个性化操作边界</h2>
+            </div>
+            <span class="pill" id="policy-status">等待偏好</span>
+          </div>
+          <div class="policy-grid">
+            <div>
+              <span>偏好画像</span>
+              <strong id="policy-profile">稳健型 / 波段</strong>
+              <small id="policy-limits">回撤容忍 12%，单票上限 10%</small>
+            </div>
+            <div>
+              <span>适配结论</span>
+              <strong id="policy-action">等待分析</strong>
+              <small id="policy-reason">生成报告后按偏好重算执行边界。</small>
+            </div>
+            <div>
+              <span>建议仓位</span>
+              <strong id="policy-position">-</strong>
+              <small id="policy-position-note">受模型评分、风险韧性和用户上限共同约束。</small>
+            </div>
+            <div>
+              <span>触发条件</span>
+              <strong id="policy-trigger">-</strong>
+              <small id="policy-trigger-note">等待核心指标。</small>
+            </div>
+          </div>
+        </section>
+
+        <section class="brief-grid scroll-section post-analysis-section" id="brief" aria-label="投资简报">
+          <article class="brief-primary">
+            <div class="panel-head">
+              <div>
+                <span class="section-kicker">Research Brief</span>
+                <h2>投研结论摘要</h2>
+              </div>
+              <span class="pill" id="score-pill">等待分析</span>
+            </div>
+            <div class="brief-body">
+              <div class="score-lockup">
+                <span class="label-with-help">
+                  综合评分
+                  <button
+                    class="help-button"
+                    type="button"
+                    data-help="final-score"
+                    aria-label="查看综合评分说明"
+                  >
+                    ?
+                  </button>
+                </span>
+                <strong id="score-title">- / 100</strong>
+                <small>最终建议由技术、机器学习和风险韧性加权形成</small>
+              </div>
+              <div class="advice-copy">
+                <span class="meta-label label-with-help">
+                  Current View
+                  <button
+                    class="help-button"
+                    type="button"
+                    data-help="current-view"
+                    aria-label="查看当前观点说明"
+                  >
+                    ?
+                  </button>
+                </span>
+                <h3 id="suggestion-text">等待生成</h3>
+                <p id="price-line">输入 A 股 6 位代码后，将返回价格、评分、信号和风控边界。</p>
+              </div>
+            </div>
+            <div class="score-breakdown">
+              <div>
+                <span class="label-with-help">
+                  技术面质量
+                  <button
+                    class="help-button"
+                    type="button"
+                    data-help="technical"
+                    aria-label="查看技术面质量说明"
+                  >
+                    ?
+                  </button>
+                </span>
+                <meter id="technical-meter" min="0" max="100" value="0"></meter>
+                <strong id="technical-score">-</strong>
+              </div>
+              <div>
+                <span class="label-with-help">
+                  模型 Edge
+                  <button
+                    class="help-button"
+                    type="button"
+                    data-help="model-edge"
+                    aria-label="查看模型 Edge 说明"
+                  >
+                    ?
+                  </button>
+                </span>
+                <meter id="ml-meter" min="0" max="100" value="0"></meter>
+                <strong id="ml-score">-</strong>
+              </div>
+              <div>
+                <span class="label-with-help">
+                  风险韧性
+                  <button
+                    class="help-button"
+                    type="button"
+                    data-help="risk-resilience"
+                    aria-label="查看风险韧性说明"
+                  >
+                    ?
+                  </button>
+                </span>
+                <meter id="risk-meter" min="0" max="100" value="0"></meter>
+                <strong id="risk-score">-</strong>
+              </div>
+            </div>
+          </article>
+
+          <article class="decision-panel">
+            <span class="section-kicker">Execution Boundary</span>
+            <h2 class="heading-with-help">
+              操作分层
+              <button
+                class="help-button"
+                type="button"
+                data-help="execution"
+                aria-label="查看操作分层说明"
+              >
+                ?
+              </button>
+            </h2>
+            <div class="decision-lanes" aria-label="操作分层">
+              <button class="lane-card active" type="button" data-strategy="observation" aria-pressed="true">
+                <span>Observation</span>
+                <strong id="lane-watch">-</strong>
+                <p>是否进入观察池</p>
+              </button>
+              <button class="lane-card" type="button" data-strategy="trial" aria-pressed="false">
+                <span>Trial</span>
+                <strong id="lane-trial">-</strong>
+                <p>是否允许小仓验证</p>
+              </button>
+              <button class="lane-card" type="button" data-strategy="avoid" aria-pressed="false">
+                <span>Avoid</span>
+                <strong id="lane-avoid">-</strong>
+                <p>是否优先回避</p>
+              </button>
+            </div>
+            <div class="strategy-card" aria-live="polite">
+              <div class="strategy-card-head">
+                <span class="meta-label" id="strategy-kicker">Observation Strategy</span>
+                <strong id="strategy-title">观察池策略</strong>
+              </div>
+              <dl class="strategy-list">
+                <div>
+                  <dt>适用条件</dt>
+                  <dd id="strategy-condition">等待分析结果。</dd>
+                </div>
+                <div>
+                  <dt>入场触发</dt>
+                  <dd id="strategy-entry">等待核心指标。</dd>
+                </div>
+                <div>
+                  <dt>仓位计划</dt>
+                  <dd id="strategy-position">-</dd>
+                </div>
+                <div>
+                  <dt>风控动作</dt>
+                  <dd id="strategy-risk">-</dd>
+                </div>
+              </dl>
+            </div>
+          </article>
+
+          <article class="quality-panel">
+            <span class="section-kicker">Core Indicator Snapshot</span>
+            <h2 class="heading-with-help">
+              核心指标快照
+              <button
+                class="help-button"
+                type="button"
+                data-help="core-indicators"
+                aria-label="查看核心指标说明"
+              >
+                ?
+              </button>
+            </h2>
+            <div class="indicator-table-wrap">
+              <table class="indicator-table" aria-label="核心技术指标">
+                <tbody id="indicator-table-body">
+                  <tr>
+                    <th scope="row">均线结构</th>
+                    <td>N/A</td>
+                    <td>等待分析</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">动量指标</th>
+                    <td>N/A</td>
+                    <td>等待分析</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">风险指标</th>
+                    <td>N/A</td>
+                    <td>等待分析</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p>仅展示报告中真实解析到的核心技术与风险指标，缺失数据不做视觉填充。</p>
+          </article>
+        </section>
+
+        <section class="methodology-panel scroll-section post-analysis-section" id="methodology" aria-label="评分方法透明度">
+          <div class="panel-head">
+            <div>
+              <span class="section-kicker">Methodology Disclosure</span>
+              <h2>评分方法与权重公开</h2>
+            </div>
+          </div>
+          <div class="method-table-wrap">
+            <table class="method-table">
+              <thead>
+                <tr>
+                  <th scope="col">模块</th>
+                  <th scope="col">公式 / 条件</th>
+                  <th scope="col">权重</th>
+                  <th scope="col">公开说明</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <th scope="row">综合评分</th>
+                  <td>技术面质量 × 50% + 模型 Edge × 35% + 风险韧性 × 15%</td>
+                  <td>100%</td>
+                  <td>仅当机器学习层通过样本与验证门槛时启用三因子加权。</td>
+                </tr>
+                <tr>
+                  <th scope="row">模型不可用</th>
+                  <td>技术面质量 × 75% + 风险韧性 × 25%</td>
+                  <td>100%</td>
+                  <td>样本不足或验证失败时，模型权重置为 0，不展示伪精度。</td>
+                </tr>
+                <tr>
+                  <th scope="row">技术面质量</th>
+                  <td>50 分基准；均线、RSI、KDJ、MACD、量比加减分后限制在 0-100</td>
+                  <td>50% / 75%</td>
+                  <td>均线每组多头 +10 后扣 15 门槛；RSI、KDJ、MACD 和量比按阈值修正。</td>
+                </tr>
+                <tr>
+                  <th scope="row">模型 Edge</th>
+                  <td>未来 N 日收益超过 0.30% 摩擦阈值的概率评分</td>
+                  <td>35% / 0%</td>
+                  <td>时间序列验证与预测窗口 gap 通过后才进入综合评分。</td>
+                </tr>
+                <tr>
+                  <th scope="row">风险韧性</th>
+                  <td>100 - 最大回撤扣分 - 20 日年化波动扣分 - ATR 压力扣分</td>
+                  <td>15% / 25%</td>
+                  <td>最大回撤扣分上限 45，波动扣分上限 30，ATR 扣分上限 20。</td>
+                </tr>
+                <tr>
+                  <th scope="row">风险门禁</th>
+                  <td>风险韧性低于 25 时，建议强制降为高风险观察 / 不开新仓</td>
+                  <td>优先级最高</td>
+                  <td>风控覆盖积极信号，避免高波动或深回撤标的被分数美化。</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="content-grid scroll-section post-analysis-section">
+          <article class="panel scroll-section" id="evidence">
+            <div class="panel-head">
+              <div>
+                <span class="section-kicker">Evidence Chain</span>
+                <h2>模型证据链</h2>
+              </div>
+            </div>
+            <ul class="insight-list" id="signals-list">
+              <li>等待分析结果。</li>
+            </ul>
+          </article>
+
+          <article class="panel scroll-section" id="risk">
+            <div class="panel-head">
+              <div>
+                <span class="section-kicker">Risk Committee</span>
+                <h2>风控门禁</h2>
+              </div>
+            </div>
+            <ul class="insight-list risk-list" id="risk-list">
+              <li>等待分析结果。</li>
+            </ul>
+          </article>
+        </section>
+
+        <section class="report-panel scroll-section post-analysis-section" id="report">
+          <div class="panel-head">
+            <div>
+              <span class="section-kicker">Audit Report</span>
+              <h2>量化咨询全文</h2>
+            </div>
+            <button class="ghost-button" type="button" id="copy-report">复制报告</button>
+          </div>
+          <pre id="report-output">尚未生成报告。</pre>
+        </section>
+      </main>
+    </div>
+
+    <div class="scroll-controls" aria-label="页面滚动控制">
+      <button type="button" id="scroll-prev" aria-label="向上滚动" title="向上滚动">↑</button>
+      <button type="button" id="scroll-next" aria-label="向下滚动" title="向下滚动">↓</button>
+    </div>
+
+    <dialog class="help-dialog" id="help-dialog" aria-labelledby="help-title">
+      <div class="help-dialog-head">
+        <div>
+          <span class="meta-label" id="help-eyebrow">Method Note</span>
+          <h2 id="help-title">指标说明</h2>
+        </div>
+        <button class="dialog-close" type="button" id="help-close" aria-label="关闭说明">×</button>
+      </div>
+      <div class="help-dialog-body" id="help-body"></div>
+    </dialog>
+
+    <script src="app.js?v=5"></script>
+  </body>
+</html>

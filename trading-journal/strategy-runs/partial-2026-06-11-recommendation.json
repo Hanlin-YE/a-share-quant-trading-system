@@ -1,0 +1,36 @@
+{
+  "status": "candidate_found",
+  "recommended_candidate": {
+    "strategy_id": "grid-e54-x46-p15-t40",
+    "entry_score": 54.0,
+    "exit_score": 46.0,
+    "max_position_pct": 15.0,
+    "max_total_exposure_pct": 40.0,
+    "selection_basis": "validation_objective",
+    "validation": {
+      "objective": -5.491,
+      "total_return_pct": -0.0412,
+      "max_drawdown_pct": 0.4582,
+      "sharpe": -0.4248,
+      "trade_count": 1.0
+    },
+    "test": {
+      "objective": -0.0956,
+      "total_return_pct": 0.0027,
+      "max_drawdown_pct": 0.1467,
+      "sharpe": 0.0467,
+      "trade_count": 2.0
+    }
+  },
+  "promotion_gate": {
+    "eligible_for_paper_trading": false,
+    "rules": [
+      "validation_objective > 0",
+      "test_total_return_pct > 0",
+      "test_max_drawdown_pct <= 20",
+      "test_trade_count >= 2"
+    ],
+    "note": "通过晋级门槛也只允许进入纸面交易观察，不允许自动真实下单。"
+  },
+  "risk_note": "仅用于训练/研究，不构成投资建议、稳定盈利承诺或自动交易信号。"
+}

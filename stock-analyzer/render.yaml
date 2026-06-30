@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: stock-quant-research
+    env: python
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    startCommand: python web_app.py --host 0.0.0.0
+    healthCheckPath: /healthz
+    autoDeploy: false
+    envVars:
+      - key: TUSHARE_TOKEN
+        sync: false
+      - key: DATA_WEBHOOK_SECRET
+        sync: false
+      - key: REFRESH_SECRET
+        sync: false

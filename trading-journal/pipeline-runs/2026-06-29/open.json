@@ -1,0 +1,196 @@
+{
+  "ok": false,
+  "stage": "open",
+  "run_date": "2026-06-29",
+  "generated_at": "2026-06-29T10:32:52",
+  "mode": "paper",
+  "monitoring_note": "日常阶段用于纸面账户结算、风险暴露和流程漂移检查；研究回测仅在策略/参数/股票池规则变更或周/月度复盘时运行。",
+  "risk_note": "仅用于训练/研究和纸面交易，不构成投资建议、稳定盈利承诺或真实交易指令。",
+  "execution": {
+    "ok": false,
+    "generated_at": "2026-06-29T10:32:52",
+    "mode": "paper",
+    "strategy": {
+      "id": "score-standard-v1",
+      "name": "评分标准策略 v1",
+      "entry_score": 58.0,
+      "exit_score": 45.0,
+      "max_position_pct": 20.0,
+      "max_total_exposure_pct": 80.0,
+      "min_trade_state": "TRADE_PLAN",
+      "min_actionable_history": 180
+    },
+    "account": {
+      "equity": 968068.62,
+      "cash": 841254.12,
+      "stock_value": 126814.5,
+      "exposure_pct": 13.0997
+    },
+    "decisions": [],
+    "failures": [
+      {
+        "symbol": "CACHE_HEALTH",
+        "error": "A股行情缓存健康检查\n====================\n检查时间: 2026-06-29T10:32:52\n样本窗口: 260个交易日\n最少行数: 80\n最大缓存年龄: 36小时\n总体结论: 失败\n\n缓存状态\n- FAIL 002230 未知: 不可用：没有新鲜且足够的缓存\n  推送缓存: 推送缓存不存在\n  拉取缓存: tencent age_hours=72.83 过期；eastmoney 不存在\n- FAIL 300750 宁德时代: 不可用：没有新鲜且足够的缓存\n  推送缓存: 推送缓存不存在\n  拉取缓存: tencent age_hours=72.83 过期；eastmoney 不存在\n- FAIL 600036 未知: 不可用：没有新鲜且足够的缓存\n  推送缓存: 推送缓存不存在\n  拉取缓存: tencent age_hours=72.83 过期；eastmoney 不存在\n- FAIL 600941 未知: 不可用：没有新鲜且足够的缓存\n  推送缓存: 推送缓存不存在\n  拉取缓存: tencent age_hours=72.83 过期；eastmoney 不存在\n- FAIL 688981 未知: 不可用：没有新鲜且足够的缓存\n  推送缓存: 推送缓存不存在\n  拉取缓存: tencent age_hours=72.83 过期；eastmoney 不存在\n\n门禁: 缓存健康通过后，才建议运行自动回测/参数优化；失败时先刷新缓存或修复外部行情源。\n风险提示: 缓存健康只证明数据可用，不证明策略有效或可稳定盈利。"
+      }
+    ],
+    "risk_note": "缓存健康失败，禁止生成纸面交易动作；仅用于训练/研究。",
+    "executed_orders": []
+  },
+  "workbook_sync": {
+    "ok": true,
+    "workbook": "/Users/hanlinye/Desktop/vibe 作品集/股票量化交易系统/trading-journal/量化交易AI实盘_纸面交易记录.xlsx"
+  },
+  "record_path": "/Users/hanlinye/Desktop/vibe 作品集/股票量化交易系统/trading-journal/pipeline-runs/2026-06-29/open.json",
+  "checkpoint_import": [
+    {
+      "date": "2026-06-29",
+      "checkpoint": "open_snapshot",
+      "due_time": "09:40",
+      "status": "failed",
+      "completed_at": "2026-06-29T10:32:52",
+      "evidence": "/Users/hanlinye/Desktop/vibe 作品集/股票量化交易系统/trading-journal/pipeline-runs/2026-06-29/open.json",
+      "notes": "pipeline open failed"
+    }
+  ],
+  "checkpoint_audit": {
+    "date": "2026-06-29",
+    "audited_at": "2026-06-29T10:32:52",
+    "counts": {
+      "done": 0,
+      "pending": 4,
+      "overdue": 2,
+      "failed": 1,
+      "waived": 0
+    },
+    "missing": [
+      {
+        "date": "2026-06-29",
+        "checkpoint": "preopen_plan",
+        "due_time": "08:50",
+        "status": "overdue",
+        "completed_at": "",
+        "evidence": "daily log / preopen pipeline record",
+        "notes": "盘前计划、观察池、无效条件。"
+      },
+      {
+        "date": "2026-06-29",
+        "checkpoint": "open_snapshot",
+        "due_time": "09:40",
+        "status": "failed",
+        "completed_at": "2026-06-29T10:32:52",
+        "evidence": "/Users/hanlinye/Desktop/vibe 作品集/股票量化交易系统/trading-journal/pipeline-runs/2026-06-29/open.json",
+        "notes": "pipeline open failed"
+      },
+      {
+        "date": "2026-06-29",
+        "checkpoint": "morning_review",
+        "due_time": "10:30",
+        "status": "overdue",
+        "completed_at": "",
+        "evidence": "manual review / intraday check row",
+        "notes": "复核早盘触发、无效、止损纪律。"
+      },
+      {
+        "date": "2026-06-29",
+        "checkpoint": "midday_plan",
+        "due_time": "12:10",
+        "status": "pending",
+        "completed_at": "",
+        "evidence": "midday pipeline record / daily log",
+        "notes": "上午结果和下午执行计划。"
+      },
+      {
+        "date": "2026-06-29",
+        "checkpoint": "afternoon_review",
+        "due_time": "14:00",
+        "status": "pending",
+        "completed_at": "",
+        "evidence": "afternoon pipeline record / intraday check row",
+        "notes": "午后加减仓或继续观察复核。"
+      },
+      {
+        "date": "2026-06-29",
+        "checkpoint": "close_settlement",
+        "due_time": "15:20",
+        "status": "pending",
+        "completed_at": "",
+        "evidence": "DAY_SUMMARY / close pipeline record",
+        "notes": "结算权益、现金、持仓、盈亏和风险状态。"
+      },
+      {
+        "date": "2026-06-29",
+        "checkpoint": "post_close_audit",
+        "due_time": "16:30",
+        "status": "pending",
+        "completed_at": "",
+        "evidence": "pipeline_review / ops report",
+        "notes": "审计缺失阶段、失败链路和次日动作。"
+      }
+    ],
+    "rows": [
+      {
+        "date": "2026-06-29",
+        "checkpoint": "preopen_plan",
+        "due_time": "08:50",
+        "status": "overdue",
+        "completed_at": "",
+        "evidence": "daily log / preopen pipeline record",
+        "notes": "盘前计划、观察池、无效条件。"
+      },
+      {
+        "date": "2026-06-29",
+        "checkpoint": "open_snapshot",
+        "due_time": "09:40",
+        "status": "failed",
+        "completed_at": "2026-06-29T10:32:52",
+        "evidence": "/Users/hanlinye/Desktop/vibe 作品集/股票量化交易系统/trading-journal/pipeline-runs/2026-06-29/open.json",
+        "notes": "pipeline open failed"
+      },
+      {
+        "date": "2026-06-29",
+        "checkpoint": "morning_review",
+        "due_time": "10:30",
+        "status": "overdue",
+        "completed_at": "",
+        "evidence": "manual review / intraday check row",
+        "notes": "复核早盘触发、无效、止损纪律。"
+      },
+      {
+        "date": "2026-06-29",
+        "checkpoint": "midday_plan",
+        "due_time": "12:10",
+        "status": "pending",
+        "completed_at": "",
+        "evidence": "midday pipeline record / daily log",
+        "notes": "上午结果和下午执行计划。"
+      },
+      {
+        "date": "2026-06-29",
+        "checkpoint": "afternoon_review",
+        "due_time": "14:00",
+        "status": "pending",
+        "completed_at": "",
+        "evidence": "afternoon pipeline record / intraday check row",
+        "notes": "午后加减仓或继续观察复核。"
+      },
+      {
+        "date": "2026-06-29",
+        "checkpoint": "close_settlement",
+        "due_time": "15:20",
+        "status": "pending",
+        "completed_at": "",
+        "evidence": "DAY_SUMMARY / close pipeline record",
+        "notes": "结算权益、现金、持仓、盈亏和风险状态。"
+      },
+      {
+        "date": "2026-06-29",
+        "checkpoint": "post_close_audit",
+        "due_time": "16:30",
+        "status": "pending",
+        "completed_at": "",
+        "evidence": "pipeline_review / ops report",
+        "notes": "审计缺失阶段、失败链路和次日动作。"
+      }
+    ]
+  }
+}
