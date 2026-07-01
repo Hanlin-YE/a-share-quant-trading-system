@@ -46,3 +46,8 @@ node_modules/
 # ===== IDE =====
 .vscode/
 .idea/
+
+# ===== WorkBuddy skills: local credentials & research state =====
+.workbuddy/skills/**/credential.txt
+.workbuddy/skills/**/alpha_db.json
+.workbuddy/skills/**/batch_submit_results.json

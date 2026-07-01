@@ -107,19 +107,35 @@ def floor_to_lot(shares: float, lot_size: int = 100) -> int:
 
 
 def score_data_result(data: analyze.DataResult) -> Dict[str, object]:
-    frame = analyze.add_indicators(data.frame)
-    ta_score, signals = analyze.technical_score(frame)
-    max_drawdown = analyze.calc_max_drawdown(frame["close"].tail(120))
-    risk = analyze.risk_score(frame, max_drawdown)
+    """Score a symbol using T-1 history only; return T's open as exec price.
+
+    与 backtest.py 对齐：信号只用 T-1 及之前数据（frame.iloc[:-1]），成交价用
+    T 日开盘价（frame.iloc[-1]["open"]），避免当日收盘价同时做信号+成交的前视偏差。
+    """
+    full = data.frame
+    # 信号帧：剔除最后一根 bar（T 日），只用 T-1 及之前的数据评分
+    if len(full) > 1:
+        signal_frame = full.iloc[:-1]
+    else:
+        signal_frame = full
+    scored = analyze.add_indicators(signal_frame)
+    ta_score, signals = analyze.technical_score(scored)
+    max_drawdown = analyze.calc_max_drawdown(scored["close"].tail(120))
+    risk = analyze.risk_score(scored, max_drawdown)
     final_score, suggestion = analyze.final_decision(ta_score, analyze.MLResult(False), risk)
-    latest = frame.iloc[-1]
+    signal_last = scored.iloc[-1]
+    latest = full.iloc[-1]
+    exec_price = float(latest["open"]) if "open" in full.columns else float(latest["close"])
     return {
         "stock_code": data.stock_code,
         "stock_name": data.stock_name,
         "source": data.source,
         "source_note": data.source_note,
+        "signal_date": str(signal_last["date"].date()),
         "latest_date": str(latest["date"].date()),
         "close": float(latest["close"]),
+        "signal_close": float(signal_last["close"]),
+        "exec_price": exec_price,
         "final_score": float(final_score),
         "ta_score": float(ta_score),
         "risk_score": float(risk),
@@ -191,7 +207,9 @@ def decide_for_symbol(
     score = score_data_result(data)
     current_position = positions.get(data.stock_code)
     current_qty = paper_account.as_int(current_position.get("quantity") if current_position else 0)
+    # 估值用 T 日收盘价（mark-to-market）；成交用 T 日开盘价（exec_price）
     current_value = current_qty * float(score["close"])
+    exec_price = float(score.get("exec_price", score["close"]))
     equity = max(float(account["equity"]), 0.01)
     cash = max(float(account["cash"]), 0.0)
     target_weight = min(
@@ -228,7 +246,7 @@ def decide_for_symbol(
         )
     elif current_qty <= 0 and float(score["final_score"]) >= strategy.config.entry_score:
         affordable_value = min(target_value, cash)
-        quantity = floor_to_lot(affordable_value / float(score["close"]))
+        quantity = floor_to_lot(affordable_value / exec_price)
         if quantity > 0:
             action = "BUY"
             side = "BUY"
@@ -242,7 +260,7 @@ def decide_for_symbol(
         symbol=data.stock_code,
         side=side,
         quantity=quantity,
-        price=float(score["close"]),
+        price=exec_price,
         trade_date=datetime.now().strftime("%Y-%m-%d"),
         cash=cash,
     )
@@ -253,7 +271,7 @@ def decide_for_symbol(
         "action": action,
         "side": side,
         "quantity": quantity,
-        "price": round(float(score["close"]), 4),
+        "price": round(exec_price, 4),
         "reason": reason,
         "current_quantity": current_qty,
         "current_value": round(current_value, 2),

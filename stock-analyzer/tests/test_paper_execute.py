@@ -375,6 +375,22 @@ class PaperExecuteTest(unittest.TestCase):
         self.assertEqual(len(orders), 1)
         self.assertEqual(orders[0]["side"], "BUY")
 
+    def test_score_data_result_uses_t_minus_1_signal_and_t_open_exec_price(self):
+        """回归：信号只用 T-1 数据，成交价为 T 日开盘价，杜绝前视偏差。"""
+        # 构造 open != close 的帧，避免合成数据里 open==close 导致断言失效
+        base = make_frame(periods=220)
+        base["open"] = base["close"] + 0.5  # 开盘价高于收盘价，制造差异
+        data = paper_execute.analyze.DataResult(base, "600519", "测试", "测试源")
+        score = paper_execute.score_data_result(data)
+
+        # 信号日 = 倒数第二根 bar（T-1）；最新日 = 最后一根 bar（T）
+        self.assertEqual(score["signal_date"], str(base["date"].iloc[-2].date()))
+        self.assertEqual(score["latest_date"], str(base["date"].iloc[-1].date()))
+        # 成交价 = T 日开盘价（最后一根 bar 的 open）
+        self.assertAlmostEqual(score["exec_price"], float(base["open"].iloc[-1]), places=6)
+        # 成交价不应等于 T 日收盘价（否则就是前视）
+        self.assertNotAlmostEqual(score["exec_price"], float(base["close"].iloc[-1]), places=6)
+
     def test_build_decision_package_stops_on_cache_health_failure(self):
         original_health = paper_execute.analyze.inspect_market_cache
         original_render = paper_execute.analyze.render_market_cache_health

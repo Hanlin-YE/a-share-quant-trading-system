@@ -36,6 +36,7 @@ class BacktestConfig:
     exit_score: float = 45.0
     max_position_pct: float = 20.0
     max_total_exposure_pct: float = 80.0
+    partial_exit_pct: float = 0.33
     fee_bps: float = 3.0
     min_commission: float = 5.0
     tax_bps: float = 5.0
@@ -72,6 +73,22 @@ def floor_to_lot(shares: float, lot_size: int) -> int:
     if lot_size <= 1:
         return max(0, int(math.floor(shares)))
     return max(0, int(math.floor(shares / lot_size) * lot_size))
+
+
+def floor_partial_exit(quantity: int, pct: float, lot_size: int = 100) -> int:
+    """分层减仓数量，与 paper_execute.floor_partial_exit 同款逻辑。"""
+    if quantity <= 0 or pct <= 0:
+        return 0
+    if quantity < lot_size:
+        return quantity
+    raw = quantity * pct
+    reduced = floor_to_lot(raw, lot_size)
+    if reduced <= 0:
+        reduced = lot_size
+    remaining = quantity - reduced
+    if 0 < remaining < lot_size:
+        return quantity
+    return min(reduced, quantity)
 
 
 def trade_cost_breakdown(
@@ -152,50 +169,50 @@ def run_backtest_from_frames(
         }
         open_equity = cash + sum(holdings[symbol] * open_prices[symbol] for symbol in normalized)
 
-        keep = {symbol for symbol, shares in holdings.items() if shares > 0 and signals[symbol][0] >= cfg.exit_score}
-        enter = {symbol for symbol, (score, _) in signals.items() if score >= cfg.entry_score}
-        target_symbols = sorted(keep | enter, key=lambda item: signals[item][0], reverse=True)
-        if target_symbols:
-            target_weight = min(
-                cfg.max_position_pct / 100.0,
-                cfg.max_total_exposure_pct / 100.0 / len(target_symbols),
-            )
-        else:
-            target_weight = 0.0
+        # 与 paper_execute.decide_for_symbol 对齐的执行模型：
+        #   - 持仓 + 评分 < exit_score → REDUCE 分层减仓（partial_exit_pct）
+        #   - 持仓 + 评分 >= exit_score → HOLD（不动，不日常再平衡）
+        #   - 空仓 + 评分 >= entry_score → BUY 建仓到 target_weight
+        # 仓位公式也与纸面一致：target_weight = min(max_position_pct,
+        #   max(0, max_total_exposure_pct - 当前总暴露))，不除以标的数。
 
-        target_shares: Dict[str, int] = {}
-        for symbol in normalized:
-            if symbol not in target_symbols:
-                target_shares[symbol] = 0
-                continue
-            buy_price = open_prices[symbol] * (1 + cfg.slippage_bps / 10_000.0)
-            desired_value = open_equity * target_weight
-            target_shares[symbol] = floor_to_lot(desired_value / buy_price, cfg.lot_size)
+        stock_value_open = sum(holdings[s] * open_prices[s] for s in normalized)
+        current_exposure_pct = (stock_value_open / open_equity * 100.0) if open_equity else 0.0
+        target_weight = min(
+            cfg.max_position_pct,
+            max(0.0, cfg.max_total_exposure_pct - current_exposure_pct),
+        )
 
+        # 1) 先处理减仓/清仓（释放现金）
+        sell_trades: List[Tuple[str, int, float, float, float]] = []
         for symbol in normalized:
-            delta = target_shares[symbol] - holdings[symbol]
-            if delta >= 0:
+            shares = holdings[symbol]
+            if shares <= 0:
                 continue
-            shares_to_sell = abs(delta)
-            price = open_prices[symbol] * (1 - cfg.slippage_bps / 10_000.0)
-            gross = shares_to_sell * price
-            costs = trade_cost_breakdown(
-                gross,
-                "SELL",
-                cfg.fee_bps,
-                cfg.min_commission,
-                cfg.tax_bps,
-                cfg.transfer_bps,
-            )
-            cost = costs["total_cost"]
+            score_val, score_reason = signals[symbol]
+            if score_val < cfg.exit_score:
+                reduce_qty = floor_partial_exit(shares, cfg.partial_exit_pct, cfg.lot_size)
+                if reduce_qty <= 0:
+                    continue
+                price = open_prices[symbol] * (1 - cfg.slippage_bps / 10_000.0)
+                gross = reduce_qty * price
+                costs = trade_cost_breakdown(
+                    gross, "SELL", cfg.fee_bps, cfg.min_commission, cfg.tax_bps, cfg.transfer_bps
+                )
+                sell_trades.append((symbol, reduce_qty, price, gross, costs["total_cost"]))
+
+        for symbol, reduce_qty, price, gross, cost in sell_trades:
             cash += gross - cost
-            holdings[symbol] -= shares_to_sell
+            holdings[symbol] -= reduce_qty
+            costs = trade_cost_breakdown(
+                gross, "SELL", cfg.fee_bps, cfg.min_commission, cfg.tax_bps, cfg.transfer_bps
+            )
             trade_rows.append(
                 {
                     "date": current_date.date().isoformat(),
                     "symbol": symbol,
                     "action": "SELL",
-                    "shares": shares_to_sell,
+                    "shares": reduce_qty,
                     "price": round(price, 4),
                     "gross": round(gross, 2),
                     "commission": round(costs["commission"], 2),
@@ -207,23 +224,29 @@ def run_backtest_from_frames(
                 }
             )
 
-        for symbol in target_symbols:
-            delta = target_shares[symbol] - holdings[symbol]
-            if delta <= 0:
+        # 2) 再处理建仓（用释放后的现金）
+        buy_candidates = [
+            (symbol, signals[symbol][0])
+            for symbol in normalized
+            if holdings[symbol] <= 0 and signals[symbol][0] >= cfg.entry_score
+        ]
+        buy_candidates.sort(key=lambda item: item[1], reverse=True)
+        for symbol, _ in buy_candidates:
+            buy_price = open_prices[symbol] * (1 + cfg.slippage_bps / 10_000.0)
+            desired_value = open_equity * target_weight / 100.0
+            desired_shares = floor_to_lot(desired_value / buy_price, cfg.lot_size)
+            if desired_shares <= 0:
                 continue
-            price = open_prices[symbol] * (1 + cfg.slippage_bps / 10_000.0)
-            affordable = floor_to_lot(cash / (price * (1 + (cfg.fee_bps + cfg.transfer_bps) / 10_000.0)), cfg.lot_size)
-            shares_to_buy = min(delta, affordable)
+            affordable = floor_to_lot(
+                cash / (buy_price * (1 + (cfg.fee_bps + cfg.transfer_bps) / 10_000.0)),
+                cfg.lot_size,
+            )
+            shares_to_buy = min(desired_shares, affordable)
             if shares_to_buy <= 0:
                 continue
-            gross = shares_to_buy * price
+            gross = shares_to_buy * buy_price
             costs = trade_cost_breakdown(
-                gross,
-                "BUY",
-                cfg.fee_bps,
-                cfg.min_commission,
-                cfg.tax_bps,
-                cfg.transfer_bps,
+                gross, "BUY", cfg.fee_bps, cfg.min_commission, cfg.tax_bps, cfg.transfer_bps
             )
             cost = costs["total_cost"]
             cash -= gross + cost
@@ -234,7 +257,7 @@ def run_backtest_from_frames(
                     "symbol": symbol,
                     "action": "BUY",
                     "shares": shares_to_buy,
-                    "price": round(price, 4),
+                    "price": round(buy_price, 4),
                     "gross": round(gross, 2),
                     "commission": round(costs["commission"], 2),
                     "stamp_tax": round(costs["stamp_tax"], 2),
@@ -361,7 +384,7 @@ def render_result(result: BacktestResult) -> str:
     lines.extend(
         [
             "",
-            "规则说明: 信号使用前一交易日收盘后可见数据，下一交易日开盘成交；按A股T+1日频调仓口径处理，不做日内高频或当日买入当日卖出；已计入佣金、印花税和滑点。",
+            "规则说明: 信号使用前一交易日收盘后可见数据，下一交易日开盘成交；按A股T+1日频调仓口径处理，不做日内高频或当日买入当日卖出；已计入佣金、印花税和滑点。出场采用分层减仓（partial_exit_pct），仓位公式与纸面策略一致（剩余暴露模型），确保回测与纸面交易口径对齐。",
             "风险提示: 本报告只用于训练/研究，不构成投资建议或自动交易信号。",
         ]
     )
@@ -378,6 +401,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     parser.add_argument("--exit-score", type=float, default=45.0)
     parser.add_argument("--max-position-pct", type=float, default=20.0)
     parser.add_argument("--max-total-exposure-pct", type=float, default=80.0)
+    parser.add_argument("--partial-exit-pct", type=float, default=0.33, help="分层减仓比例，与纸面策略对齐")
     parser.add_argument("--fee-bps", type=float, default=3.0)
     parser.add_argument("--min-commission", type=float, default=5.0)
     parser.add_argument("--tax-bps", type=float, default=5.0)
@@ -394,6 +418,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         exit_score=args.exit_score,
         max_position_pct=args.max_position_pct,
         max_total_exposure_pct=args.max_total_exposure_pct,
+        partial_exit_pct=args.partial_exit_pct,
         fee_bps=args.fee_bps,
         min_commission=args.min_commission,
         tax_bps=args.tax_bps,
