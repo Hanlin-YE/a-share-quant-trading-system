@@ -12,6 +12,7 @@ from .adapters.deepseek import DeepSeekError, analyze_news_with_deepseek, check_
 from .adapters.eastmoney import build_market_snapshot, fetch_realtime_rows, is_limit_up, row_themes
 from .adapters.news import collect_news
 from .config import load_settings
+from .hotspot import extract_hotspots
 from .models import NewsItem, PoolEntry, Position
 from .pipeline import load_market_snapshot, load_news, run_pipeline
 from .pools import PoolManager
@@ -65,9 +66,11 @@ def command_doctor() -> int:
     settings = load_settings()
     checks = []
     checks.append({"name": ".env", "ok": (settings.project_root / ".env").exists()})
-    checks.append({"name": "DEEPSEEK_API_KEY", "ok": bool(settings.deepseek_api_key)})
-    ok, message = check_deepseek(settings)
-    checks.append({"name": "DeepSeek", "ok": ok, "message": message})
+    # DeepSeek 改为可选（工程化热点提取不依赖它）
+    checks.append({"name": "DEEPSEEK_API_KEY", "ok": bool(settings.deepseek_api_key), "optional": True, "note": "optional; rule-based hotspot works without it"})
+    if settings.deepseek_api_key:
+        ok, message = check_deepseek(settings)
+        checks.append({"name": "DeepSeek (optional)", "ok": ok, "message": message, "optional": True})
     try:
         rows = fetch_realtime_rows(max_pages=1)
         checks.append({"name": "Eastmoney realtime", "ok": bool(rows), "rows": len(rows)})
@@ -75,7 +78,15 @@ def command_doctor() -> int:
         checks.append({"name": "Eastmoney realtime", "ok": False, "message": f"{type(exc).__name__}: {exc}"})
     news_items, statuses = collect_news(settings)
     checks.append({"name": "News adapters", "ok": bool(news_items), "statuses": statuses})
-    blocked = [check for check in checks if not check.get("ok")]
+    # 工程化热点引擎自检
+    try:
+        from .hotspot import extract_hotspots
+        hot_terms, details = extract_hotspots(news_items, rows if "rows" in dir() else [], is_limit_up)
+        checks.append({"name": "Hotspot engine", "ok": bool(hot_terms), "count": len(hot_terms)})
+    except Exception as exc:  # noqa: BLE001
+        checks.append({"name": "Hotspot engine", "ok": False, "message": f"{type(exc).__name__}: {exc}"})
+    # 只有必选项失败才 BLOCKED（optional 失败不影响）
+    blocked = [c for c in checks if not c.get("ok") and not c.get("optional")]
     result = {"strict_status": "PASS" if not blocked else "BLOCKED", "checks": checks}
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0 if not blocked else 2
@@ -153,11 +164,10 @@ def command_scan(runs_dir: Path, timezone: str, allow_degraded: bool = False) ->
     source_statuses: list[dict] = []
 
     if not settings.deepseek_api_key:
-        result = blocked_result(now, "DEEPSEEK_API_KEY missing", source_statuses)
-        persist_scan_outputs(runs_dir, run_date, run_slot, result)
-        return result
+        # 工程化模式下不再要求 DeepSeek key，仅记录
+        source_statuses.append({"source": "deepseek", "status": "disabled", "reason": "no API key; using rule-based hotspot extraction"})
 
-    # 行情先取（降级兜底依赖）
+    # 行情先取（工程化热点提取依赖涨停板块统计）
     try:
         rows = fetch_realtime_rows()
         source_statuses.append({"source": "eastmoney_clist", "status": "ok", "rows": len(rows)})
@@ -171,23 +181,44 @@ def command_scan(runs_dir: Path, timezone: str, allow_degraded: bool = False) ->
     source_statuses.extend(news_statuses)
     degraded_news = False
     hot_terms: list[str] = []
+    hotspot_details: list[dict] = []
     news_analysis: dict = {}
 
-    if news_items:
+    # 第一步：工程化热点提取（纯 Python，关键词频次 + 涨停板块聚类 + 交叉验证）
+    try:
+        hot_terms, hotspot_details = extract_hotspots(news_items, rows, is_limit_up, top_n=20)
+        source_statuses.append({
+            "source": "hotspot_engine",
+            "status": "ok",
+            "count": len(hot_terms),
+            "strong": sum(1 for h in hotspot_details if h["type"] == "strong"),
+            "fund_only": sum(1 for h in hotspot_details if h["type"] == "fund_only"),
+            "news_only": sum(1 for h in hotspot_details if h["type"] == "news_only"),
+        })
+    except Exception as exc:  # noqa: BLE001
+        source_statuses.append({"source": "hotspot_engine", "status": "blocked", "error": f"{type(exc).__name__}: {exc}"})
+
+    # 第二步：LLM 可选增强——仅当工程化结果为空或 strong 热点<2 时才调用
+    need_llm_boost = len(hot_terms) < 2 or sum(1 for h in hotspot_details if h["type"] == "strong") < 2
+    if settings.deepseek_api_key and news_items and need_llm_boost:
         try:
             news_analysis = analyze_news_with_deepseek(settings, news_items)
-            hot_terms = hot_terms_from_deepseek(news_analysis)
-            source_statuses.append({"source": "deepseek", "status": "ok", "model": settings.deepseek_model})
+            llm_terms = hot_terms_from_deepseek(news_analysis)
+            # 合并：LLM 词去重后追加到工程化结果末尾
+            existing = set(hot_terms)
+            for term in llm_terms:
+                if term not in existing:
+                    hot_terms.append(term)
+                    existing.add(term)
+            source_statuses.append({"source": "deepseek", "status": "ok", "model": settings.deepseek_model, "role": "boost", "added": len(llm_terms)})
         except DeepSeekError as exc:
-            source_statuses.append({"source": "deepseek", "status": "blocked", "error": str(exc)})
-    else:
-        source_statuses.append({"source": "deepseek", "status": "skipped", "reason": "no news items"})
+            source_statuses.append({"source": "deepseek", "status": "blocked", "error": str(exc), "role": "boost"})
 
-    # 降级：新闻/DeepSeek 不可用时，用涨停板块热点
+    # 兜底：工程化 + LLM 都没产出，纯用涨停板块
     if not hot_terms:
         degraded_news = True
         hot_terms = hot_terms_from_market(rows)
-        source_statuses.append({"source": "hot_terms_fallback", "status": "degraded", "count": len(hot_terms), "reason": "news/deepseek unavailable, using limit-up themes"})
+        source_statuses.append({"source": "hot_terms_fallback", "status": "degraded", "count": len(hot_terms), "reason": "rule+llm both empty, using raw limit-up themes"})
 
     try:
         stocks, market_meta = build_market_snapshot(rows, hot_terms)
@@ -228,13 +259,14 @@ def command_scan(runs_dir: Path, timezone: str, allow_degraded: bool = False) ->
             "run_date": run_date,
             "run_slot": run_slot,
             "source_statuses": source_statuses,
+            "hotspot_engine": {"hot_terms": hot_terms, "details": hotspot_details},
             "deepseek_analysis": news_analysis,
             "degraded_news": degraded_news,
             "market_total_amount": market_total,
             "pools_summary": {**pm.summary(), "entries": [e.__dict__ for e in pm.entries]},
             "portfolio_summary": pf.summary(),
             "sell_signals": sell_signal_dicts,
-            "production_note": "Production scan used real adapters; data/examples are not used.",
+            "production_note": "Hotspot extraction: rule-based engine (Python) first, LLM optional boost only.",
         }
     )
     persist_scan_outputs(runs_dir, run_date, run_slot, result)

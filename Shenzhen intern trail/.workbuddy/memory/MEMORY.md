@@ -28,6 +28,7 @@
 ### 文件结构
 - src/models.py：MarketStock(含V1.0扩展字段) + PoolEntry/Position/SellSignal
 - src/pipeline.py：四层筛选 + DEFAULT_THRESHOLDS(对齐V1.0)
+- src/hotspot.py：纯Python热点提取引擎（关键词频次+涨停聚类+交叉验证，LLM可选增强）
 - src/pools.py：三层股池 hot/screened/trade + TTL4天
 - src/portfolio.py：分4仓 + 卖点信号
 - src/ports.py：NewsSource/MarketSource/LLMAnalyzer Protocol
