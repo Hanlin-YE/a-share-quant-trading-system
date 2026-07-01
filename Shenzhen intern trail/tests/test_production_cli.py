@@ -22,6 +22,7 @@ class ProductionCliTests(unittest.TestCase):
             enable_jin10=False,
             enable_wind=False,
             enable_baidu_hot=False,
+            enable_toutiao_hot=False,
             enable_google_trends=False,
             enable_official_media=False,
             jin10_mode="disabled",

@@ -18,6 +18,7 @@ class Settings:
     enable_jin10: bool
     enable_wind: bool
     enable_baidu_hot: bool
+    enable_toutiao_hot: bool
     enable_google_trends: bool
     enable_official_media: bool
     jin10_mode: str
@@ -65,6 +66,7 @@ def load_settings(project_root: Path | None = None) -> Settings:
         enable_jin10=parse_bool(get("ENABLE_JIN10", "false")),
         enable_wind=parse_bool(get("ENABLE_WIND", "false")),
         enable_baidu_hot=parse_bool(get("ENABLE_BAIDU_HOT", "true"), True),
+        enable_toutiao_hot=parse_bool(get("ENABLE_TOUTIAO_HOT", "true"), True),
         enable_google_trends=parse_bool(get("ENABLE_GOOGLE_TRENDS", "true"), True),
         enable_official_media=parse_bool(get("ENABLE_OFFICIAL_MEDIA", "true"), True),
         jin10_mode=get("JIN10_MODE", "disabled").lower(),

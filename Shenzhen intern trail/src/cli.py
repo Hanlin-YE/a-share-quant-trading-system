@@ -3,15 +3,19 @@ from __future__ import annotations
 import argparse
 import json
 import time
+from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from .adapters.deepseek import DeepSeekError, analyze_news_with_deepseek, check_deepseek
-from .adapters.eastmoney import build_market_snapshot, fetch_realtime_rows
+from .adapters.eastmoney import build_market_snapshot, fetch_realtime_rows, is_limit_up, row_themes
 from .adapters.news import collect_news
 from .config import load_settings
+from .models import NewsItem, PoolEntry, Position
 from .pipeline import load_market_snapshot, load_news, run_pipeline
+from .pools import PoolManager
+from .portfolio import Portfolio
 from .report import write_html_report
 
 
@@ -78,11 +82,19 @@ def command_doctor() -> int:
 
 
 def hot_terms_from_deepseek(analysis: dict) -> list[str]:
+    """提取热点词，并把复合主题（如'机器人/人形机器人'、'AI+农业'）拆成更小的词便于子串匹配。"""
+    import re as _re
     terms: list[str] = []
     for theme in analysis.get("hot_themes", []) or []:
         value = theme.get("theme") if isinstance(theme, dict) else str(theme)
         if value:
-            terms.append(str(value))
+            raw = str(value)
+            terms.append(raw)
+            # 拆分复合主题
+            for part in _re.split(r"[/+、，,]+", raw):
+                part = part.strip()
+                if len(part) >= 2:
+                    terms.append(part)
     for stock in analysis.get("mentioned_stocks", []) or []:
         if not isinstance(stock, dict):
             continue
@@ -93,72 +105,140 @@ def hot_terms_from_deepseek(analysis: dict) -> list[str]:
     return list(dict.fromkeys(terms))
 
 
+def hot_terms_from_market(rows: list[dict]) -> list[str]:
+    """降级：新闻源不可用时，用当日涨停股的板块/概念作为热点。"""
+    theme_counter: dict[str, int] = defaultdict(int)
+    for row in rows:
+        if is_limit_up(row):
+            for theme in row_themes(row):
+                theme_counter[theme] += 1
+    ranked = sorted(theme_counter.items(), key=lambda kv: kv[1], reverse=True)
+    return [theme for theme, _ in ranked[:20]]
+
+
+def load_news_items_from_dicts(items: list[dict]) -> list:
+    return [NewsItem(source=str(item.get("source", "")), title=str(item.get("title", "")), summary=str(item.get("summary", "")), published_at=str(item.get("published_at", ""))) for item in items]
+
+
+def build_pool_entries(result: dict, today: str) -> dict:
+    """从 pipeline 结果构造三层股池命中条目。"""
+    hot_entries = [
+        PoolEntry(code=item["code"], name=item["name"], layer="hot", entered_at=today, last_seen_at=today, themes=item.get("matched_terms", []), note=f"hot_score={item.get('hot_score',0)}")
+        for item in result.get("hot_pool", [])
+    ]
+    screened_entries: list[PoolEntry] = []
+    for item in result.get("layer_results", []):
+        if item.get("layer2", {}).get("passed") and item.get("layer3", {}).get("passed"):
+            screened_entries.append(PoolEntry(code=item["code"], name=item["name"], layer="screened", entered_at=today, last_seen_at=today, themes=item.get("matched_terms", [])))
+    trade_entries = [
+        PoolEntry(code=plan["code"], name=plan["name"], layer="trade", entered_at=today, last_seen_at=today, note=f"trigger={plan.get('trigger')},slot={plan.get('slot')}")
+        for plan in result.get("buy_plans", [])
+    ]
+    return {"hot": hot_entries, "screened": screened_entries, "trade": trade_entries}
+
+
+def build_quotes_from_stocks(stocks: list) -> dict:
+    return {
+        s.code: {"pct_change": s.pct_change, "close": s.close, "is_limit_up": s.is_limit_up}
+        for s in stocks
+    }
+
+
 def command_scan(runs_dir: Path, timezone: str, allow_degraded: bool = False) -> dict:
     settings = load_settings()
     now = datetime.now(ZoneInfo(timezone))
     run_date = now.strftime("%Y-%m-%d")
     run_slot = now.strftime("%H%M")
-    source_statuses = []
+    today = now.strftime("%Y-%m-%d")
+    source_statuses: list[dict] = []
 
     if not settings.deepseek_api_key:
         result = blocked_result(now, "DEEPSEEK_API_KEY missing", source_statuses)
         persist_scan_outputs(runs_dir, run_date, run_slot, result)
         return result
 
-    news_items, news_statuses = collect_news(settings)
-    source_statuses.extend(news_statuses)
-    if settings.strict_news_required and not news_items:
-        result = blocked_result(now, "No real news source available; refusing to use examples", source_statuses)
-        persist_scan_outputs(runs_dir, run_date, run_slot, result)
-        return result
-
-    try:
-        news_analysis = analyze_news_with_deepseek(settings, news_items)
-        source_statuses.append({"source": "deepseek", "status": "ok", "model": settings.deepseek_model})
-    except DeepSeekError as exc:
-        result = blocked_result(now, str(exc), source_statuses + [{"source": "deepseek", "status": "blocked"}])
-        persist_scan_outputs(runs_dir, run_date, run_slot, result)
-        return result
-
-    hot_terms = hot_terms_from_deepseek(news_analysis)
+    # 行情先取（降级兜底依赖）
     try:
         rows = fetch_realtime_rows()
-        stocks, market_meta = build_market_snapshot(rows, hot_terms)
-        source_statuses.append({"source": "eastmoney", "status": "ok", **market_meta})
+        source_statuses.append({"source": "eastmoney_clist", "status": "ok", "rows": len(rows)})
     except Exception as exc:  # noqa: BLE001
         result = blocked_result(now, f"Market adapter failed: {type(exc).__name__}: {exc}", source_statuses)
         persist_scan_outputs(runs_dir, run_date, run_slot, result)
         return result
 
-    pipeline_news = [
-        {
-            "source": item.get("source", "news"),
-            "title": item.get("title", ""),
-            "summary": item.get("summary", ""),
-            "published_at": item.get("published_at", ""),
-        }
-        for item in news_items
-    ]
-    result = run_pipeline(load_news_items_from_dicts(pipeline_news), stocks)
+    # 新闻层
+    news_items, news_statuses = collect_news(settings)
+    source_statuses.extend(news_statuses)
+    degraded_news = False
+    hot_terms: list[str] = []
+    news_analysis: dict = {}
+
+    if news_items:
+        try:
+            news_analysis = analyze_news_with_deepseek(settings, news_items)
+            hot_terms = hot_terms_from_deepseek(news_analysis)
+            source_statuses.append({"source": "deepseek", "status": "ok", "model": settings.deepseek_model})
+        except DeepSeekError as exc:
+            source_statuses.append({"source": "deepseek", "status": "blocked", "error": str(exc)})
+    else:
+        source_statuses.append({"source": "deepseek", "status": "skipped", "reason": "no news items"})
+
+    # 降级：新闻/DeepSeek 不可用时，用涨停板块热点
+    if not hot_terms:
+        degraded_news = True
+        hot_terms = hot_terms_from_market(rows)
+        source_statuses.append({"source": "hot_terms_fallback", "status": "degraded", "count": len(hot_terms), "reason": "news/deepseek unavailable, using limit-up themes"})
+
+    try:
+        stocks, market_meta = build_market_snapshot(rows, hot_terms)
+        source_statuses.append({"source": "eastmoney_snapshot", "status": "ok", **market_meta})
+    except Exception as exc:  # noqa: BLE001
+        result = blocked_result(now, f"Snapshot build failed: {type(exc).__name__}: {exc}", source_statuses)
+        persist_scan_outputs(runs_dir, run_date, run_slot, result)
+        return result
+
+    market_total = float(market_meta.get("market_total_amount", 0.0))
+    pipeline_news = load_news_items_from_dicts(
+        [{"source": item.get("source", "news"), "title": item.get("title", ""), "summary": item.get("summary", ""), "published_at": item.get("published_at", "")} for item in news_items]
+    )
+    # 降级时补充一条占位新闻，保证 pipeline 第一层不空
+    if not pipeline_news and hot_terms:
+        pipeline_news = [NewsItem(source="market_fallback", title=",".join(hot_terms[:8]), summary="涨停板块热点降级", published_at=now.isoformat(timespec="seconds"))]
+
+    result = run_pipeline(pipeline_news, stocks, market_total_amount=market_total)
+
+    # 三层股池更新
+    pool_path = runs_dir / "pools.json"
+    pm = PoolManager.load(pool_path)
+    hit_by_layer = build_pool_entries(result, today)
+    pm.update(hit_by_layer, today)
+    pm.save(pool_path)
+
+    # 仓位与卖点
+    portfolio_path = runs_dir / "portfolio.json"
+    pf = Portfolio.load(portfolio_path)
+    quotes = build_quotes_from_stocks(stocks)
+    sell_signals = pf.check_sell_signals(quotes)
+    sell_signal_dicts = [s.__dict__ for s in sell_signals]
+
     result.update(
         {
-            "strict_status": "PASS" if result.get("buy_plans") else "NO_SIGNAL",
+            "strict_status": "PASS" if result.get("buy_plans") or sell_signals else "NO_SIGNAL",
             "run_timestamp": now.isoformat(timespec="seconds"),
             "run_date": run_date,
             "run_slot": run_slot,
             "source_statuses": source_statuses,
             "deepseek_analysis": news_analysis,
+            "degraded_news": degraded_news,
+            "market_total_amount": market_total,
+            "pools_summary": {**pm.summary(), "entries": [e.__dict__ for e in pm.entries]},
+            "portfolio_summary": pf.summary(),
+            "sell_signals": sell_signal_dicts,
             "production_note": "Production scan used real adapters; data/examples are not used.",
         }
     )
     persist_scan_outputs(runs_dir, run_date, run_slot, result)
     return result
-
-
-def load_news_items_from_dicts(items: list[dict]) -> list:
-    from .models import NewsItem
-
-    return [NewsItem(source=str(item.get("source", "")), title=str(item.get("title", "")), summary=str(item.get("summary", "")), published_at=str(item.get("published_at", ""))) for item in items]
 
 
 def blocked_result(now: datetime, reason: str, source_statuses: list[dict]) -> dict:
@@ -171,6 +251,7 @@ def blocked_result(now: datetime, reason: str, source_statuses: list[dict]) -> d
         "hot_pool": [],
         "layer_results": [],
         "buy_plans": [],
+        "sell_signals": [],
         "risk_note": "研究用途，不构成投资建议；未满足生产门禁，不输出买入计划。",
     }
 

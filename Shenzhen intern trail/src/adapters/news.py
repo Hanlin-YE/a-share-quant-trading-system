@@ -1,19 +1,32 @@
 from __future__ import annotations
 
-import json
 import csv
+import json
+import re
+import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
-from urllib.request import Request, urlopen
 
 from ..config import Settings
 
+_UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36"
 
-def fetch_json(url: str, timeout: int = 10) -> Any:
-    request = Request(url, headers={"User-Agent": "Mozilla/5.0"})
-    with urlopen(request, timeout=timeout) as response:
-        return json.loads(response.read().decode("utf-8"))
+
+def _curl_text(url: str, timeout: int = 8, encoding: str = "utf-8", referer: str = "") -> str:
+    cmd = ["curl", "-sS", "-L", "-m", str(timeout), "-A", _UA]
+    if referer:
+        cmd += ["-H", f"Referer: {referer}"]
+    cmd.append(url)
+    result = subprocess.run(cmd, capture_output=True, timeout=timeout + 4)
+    return result.stdout.decode(encoding, errors="ignore")
+
+
+def _curl_json(url: str, timeout: int = 8, referer: str = "") -> Any:
+    text = _curl_text(url, timeout, referer=referer)
+    if not text.strip() or "<html" in text[:50].lower():
+        raise RuntimeError(f"non-json response (len={len(text)})")
+    return json.loads(text)
 
 
 def now_iso() -> str:
@@ -23,30 +36,42 @@ def now_iso() -> str:
 def fetch_baidu_hot(settings: Settings) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     if not settings.enable_baidu_hot:
         return [], {"source": "baidu_hot", "status": "disabled"}
-    url = "https://top.baidu.com/board?tab=realtime"
     try:
-        request = Request(url, headers={"User-Agent": "Mozilla/5.0"})
-        with urlopen(request, timeout=10) as response:
-            html = response.read().decode("utf-8", errors="ignore")
-        # Baidu page is not a stable public JSON API. Keep titles from embedded text when available.
-        items = []
-        for marker in ["热搜", "财经", "股票", "半导体", "机器人", "AI", "低空经济", "新能源"]:
-            if marker in html:
-                items.append({"source": "baidu_hot", "title": marker, "summary": "百度热搜页面命中关键词", "published_at": now_iso()})
-        return items[:10], {"source": "baidu_hot", "status": "ok", "count": len(items)}
+        payload = _curl_json("https://top.baidu.com/api/board?platform=wise&tab=realtime", referer="https://top.baidu.com/")
+        items: list[dict[str, Any]] = []
+        for card in payload.get("data", {}).get("cards", []):
+            for group in card.get("content", []):
+                for content in group.get("content", []):
+                    title = content.get("word") or content.get("query") or content.get("name") or ""
+                    desc = content.get("desc", "")
+                    if title:
+                        items.append({"source": "baidu_hot", "title": str(title), "summary": str(desc), "published_at": now_iso()})
+        return items[:10], {"source": "baidu_hot", "status": "ok", "count": len(items[:10])}
     except Exception as exc:  # noqa: BLE001
         return [], {"source": "baidu_hot", "status": "blocked", "error": f"{type(exc).__name__}: {exc}"}
+
+
+def fetch_toutiao_hot(settings: Settings) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    if not settings.enable_toutiao_hot:
+        return [], {"source": "toutiao_hot", "status": "disabled"}
+    try:
+        payload = _curl_json("https://www.toutiao.com/hot-event/hot-board/?origin=toutiao_pc")
+        items: list[dict[str, Any]] = []
+        for entry in payload.get("data", [])[:10]:
+            title = entry.get("Title") or entry.get("title") or ""
+            cluster = entry.get("ClusterIdStr") or entry.get("ClusterId") or ""
+            if title:
+                items.append({"source": "toutiao_hot", "title": str(title), "summary": f"头条热搜 cluster={cluster}", "published_at": now_iso()})
+        return items, {"source": "toutiao_hot", "status": "ok", "count": len(items)}
+    except Exception as exc:  # noqa: BLE001
+        return [], {"source": "toutiao_hot", "status": "blocked", "error": f"{type(exc).__name__}: {exc}"}
 
 
 def fetch_google_trends(settings: Settings) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     if not settings.enable_google_trends:
         return [], {"source": "google_trends", "status": "disabled"}
-    # Public Google Trends daily feed is region specific and may be blocked; fail explicitly if inaccessible.
-    url = "https://trends.google.com/trends/trendingsearches/daily/rss?geo=CN"
     try:
-        request = Request(url, headers={"User-Agent": "Mozilla/5.0"})
-        with urlopen(request, timeout=10) as response:
-            text = response.read().decode("utf-8", errors="ignore")
+        text = _curl_text("https://trends.google.com/trends/trendingsearches/daily/rss?geo=CN")
         items = []
         for chunk in text.split("<item>")[1:11]:
             title = chunk.split("<title>", 1)[1].split("</title>", 1)[0] if "<title>" in chunk else ""
@@ -57,27 +82,47 @@ def fetch_google_trends(settings: Settings) -> tuple[list[dict[str, Any]], dict[
         return [], {"source": "google_trends", "status": "blocked", "error": f"{type(exc).__name__}: {exc}"}
 
 
+def _extract_titles_from_html(html_text: str, source_url: str) -> list[dict[str, Any]]:
+    """从新闻列表页 HTML 提取真实标题（<a>标签文本），过滤导航类，保留含财经关键词的。"""
+    finance_keywords = ["股", "债", "基金", "经济", "金融", "央行", "科技", "半导", "芯片", "AI", "人工", "机器",
+                        "新能", "锂电", "光伏", "算力", "数据", "消费", "医药", "生物", "军工", "航天", "低空",
+                        "政策", "改革", "投资", "产业", "制造", "汽车", "数字", "绿电", "储能", "材料"]
+    raw_titles = re.findall(r"<a[^>]*>([^<]{6,50})</a>", html_text)
+    seen = set()
+    items = []
+    for title in raw_titles:
+        clean = title.strip()
+        if not clean or clean in seen:
+            continue
+        if not any(kw in clean for kw in finance_keywords):
+            continue
+        seen.add(clean)
+        items.append({"source": "official_media", "title": clean, "summary": f"官媒列表页 {source_url}", "published_at": now_iso()})
+    return items
+
+
 def fetch_official_media(settings: Settings) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     if not settings.enable_official_media:
         return [], {"source": "official_media", "status": "disabled"}
-    feeds = [
-        "http://www.news.cn/fortune/index.htm",
-        "http://finance.people.com.cn/",
-    ]
+    feeds = ["http://www.news.cn/fortune/index.htm", "http://finance.people.com.cn/"]
     items: list[dict[str, Any]] = []
     errors: list[str] = []
     for url in feeds:
         try:
-            request = Request(url, headers={"User-Agent": "Mozilla/5.0"})
-            with urlopen(request, timeout=10) as response:
-                text = response.read().decode("utf-8", errors="ignore")
-            for keyword in ["人工智能", "半导体", "机器人", "低空经济", "新能源", "算力", "数据中心", "消费电子"]:
-                if keyword in text:
-                    items.append({"source": "official_media", "title": keyword, "summary": f"官媒页面 {url} 命中关键词", "published_at": now_iso()})
+            text = _curl_text(url, timeout=10)
+            extracted = _extract_titles_from_html(text, url)
+            items.extend(extracted)
         except Exception as exc:  # noqa: BLE001
             errors.append(f"{url}: {type(exc).__name__}: {exc}")
-    status = "ok" if items else "blocked"
-    return items[:20], {"source": "official_media", "status": status, "count": len(items), "errors": errors[:2]}
+    # 去重
+    seen = set()
+    deduped = []
+    for item in items:
+        if item["title"] not in seen:
+            seen.add(item["title"])
+            deduped.append(item)
+    status = "ok" if deduped else "blocked"
+    return deduped[:20], {"source": "official_media", "status": status, "count": len(deduped), "errors": errors[:2]}
 
 
 def normalize_news_item(source: str, payload: dict[str, Any]) -> dict[str, Any]:
@@ -94,11 +139,7 @@ def fetch_jin10(settings: Settings) -> tuple[list[dict[str, Any]], dict[str, Any
         if not settings.jin10_api_url:
             return [], {"source": "jin10", "status": "blocked", "reason": "JIN10_API_URL missing"}
         try:
-            request = Request(settings.jin10_api_url, headers={"User-Agent": "Mozilla/5.0"})
-            if settings.jin10_api_key:
-                request.add_header("Authorization", f"Bearer {settings.jin10_api_key}")
-            with urlopen(request, timeout=10) as response:
-                payload = json.loads(response.read().decode("utf-8"))
+            payload = _curl_json(settings.jin10_api_url)
             rows = payload.get("data", payload) if isinstance(payload, dict) else payload
             if isinstance(rows, dict):
                 rows = rows.get("items") or rows.get("list") or []
@@ -107,17 +148,10 @@ def fetch_jin10(settings: Settings) -> tuple[list[dict[str, Any]], dict[str, Any
         except Exception as exc:  # noqa: BLE001
             return [], {"source": "jin10", "status": "blocked", "mode": "api", "error": f"{type(exc).__name__}: {exc}"}
     if settings.jin10_mode == "public":
-        # Public site fallback is best-effort and should be treated as degraded, not equivalent to licensed API.
         try:
-            request = Request("https://www.jin10.com/", headers={"User-Agent": "Mozilla/5.0"})
-            with urlopen(request, timeout=10) as response:
-                html = response.read().decode("utf-8", errors="ignore")
+            html = _curl_text("https://www.jin10.com/")
             keywords = ["央行", "美联储", "黄金", "原油", "A股", "人工智能", "半导体", "新能源", "机器人"]
-            items = [
-                {"source": "jin10", "title": keyword, "summary": "金十公开页面命中关键词；非授权API，仅作降级信号", "published_at": now_iso()}
-                for keyword in keywords
-                if keyword in html
-            ]
+            items = [{"source": "jin10", "title": kw, "summary": "金十公开页面命中关键词；非授权API，仅作降级信号", "published_at": now_iso()} for kw in keywords if kw in html]
             return items[:20], {"source": "jin10", "status": "degraded", "mode": "public", "count": len(items)}
         except Exception as exc:  # noqa: BLE001
             return [], {"source": "jin10", "status": "blocked", "mode": "public", "error": f"{type(exc).__name__}: {exc}"}
@@ -153,7 +187,6 @@ def fetch_wind(settings: Settings) -> tuple[list[dict[str, Any]], dict[str, Any]
             started = w.start()
             if getattr(started, "ErrorCode", 0) not in (0, None):
                 return [], {"source": "wind", "status": "blocked", "mode": "windpy", "reason": f"w.start ErrorCode={started.ErrorCode}"}
-            # Wind news APIs vary by entitlement. Expose a clear adapter point instead of guessing silently.
             return [], {"source": "wind", "status": "blocked", "mode": "windpy", "reason": "WindPy available, but news query entitlement/function must be configured"}
         except Exception as exc:  # noqa: BLE001
             return [], {"source": "wind", "status": "blocked", "mode": "windpy", "error": f"{type(exc).__name__}: {exc}"}
@@ -163,7 +196,7 @@ def fetch_wind(settings: Settings) -> tuple[list[dict[str, Any]], dict[str, Any]
 def collect_news(settings: Settings) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     all_items: list[dict[str, Any]] = []
     statuses: list[dict[str, Any]] = []
-    for fetcher in [fetch_jin10, fetch_wind, fetch_baidu_hot, fetch_google_trends, fetch_official_media]:
+    for fetcher in [fetch_jin10, fetch_wind, fetch_baidu_hot, fetch_toutiao_hot, fetch_google_trends, fetch_official_media]:
         items, status = fetcher(settings)
         all_items.extend(items)
         statuses.append(status)
