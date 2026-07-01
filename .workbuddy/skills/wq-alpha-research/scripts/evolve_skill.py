@@ -1,5 +1,11 @@
 """WQ Alpha Research Skill self-evolution helper.
 
+Third-party attribution:
+  Original author: QuantML-Research
+  Source: https://github.com/QuantML-Research/wq-alpha-research
+  License: CC BY-NC 4.0 (https://creativecommons.org/licenses/by-nc/4.0/)
+  Modifications: none (verbatim from upstream commit 86d7531)
+
 Self-contained: only needs `requests`, `numpy`, and credentials supplied via
 environment variables or a local untracked `credential.txt` file.
 

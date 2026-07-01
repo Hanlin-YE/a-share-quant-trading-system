@@ -1,9 +1,17 @@
 ---
 name: wq-alpha-research
 description: "Use for WorldQuant BRAIN alpha research: designing WQ Alpha expressions, selecting fields/operators, diagnosing simulation and IS check failures, tuning Sharpe/Fitness/Turnover, submitting alphas, and building low-correlation alpha portfolios. Also use for 中文 requests about WorldQuant、BRAIN、WQ Alpha、因子表达式、回测、提交、换手、Fitness、Sharpe."
+source: https://github.com/QuantML-Research/wq-alpha-research
+author: QuantML-Research
+license: CC-BY-NC-4.0
+license_url: https://creativecommons.org/licenses/by-nc/4.0/
+modifications: none
+upstream_commit: 86d7531
 ---
 
 # WQ Alpha 研究 Skill
+
+> ⚠️ **第三方 skill**：原作者 QuantML-Research，许可证 CC BY-NC 4.0（署名-非商业）。详见同目录 `NOTICE` 与 `LICENSE`。本仓库未修改原文件。
 
 > 结构化 playbook：字段 → 表达式 → 回测 → 检查 → 提交 → 组合。融合 WorldQuant BRAIN 文档知识与 USA TOP3000 实证经验。
 
